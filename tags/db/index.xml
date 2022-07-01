@@ -4,15 +4,7 @@
         <link>https://mazhen.tech/tags/db/</link>
         <description>db - Tag - mazhen.tech</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 15 May 2022 14:38:05 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/db/" rel="self" type="application/rss+xml" /><item>
-    <title>TiDB Insert 执行流程图</title>
-    <link>https://mazhen.tech/insert-overview/</link>
-    <pubDate>Sun, 15 May 2022 14:38:05 &#43;0800</pubDate>
-    <author>mazhen</author>
-    <guid>https://mazhen.tech/insert-overview/</guid>
-    <description><![CDATA[TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理解对这幅图扩展]]></description>
-</item>
-<item>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/db/" rel="self" type="application/rss+xml" /><item>
     <title>关系数据库查询处理基础知识扫盲</title>
     <link>https://mazhen.tech/rdbms-fundamental/</link>
     <pubDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</pubDate>
@@ -35,6 +27,14 @@
     <author>mazhen</author>
     <guid>https://mazhen.tech/radondb/</guid>
     <description><![CDATA[现在新出现的MySQL中间件除了基本的数据sharding功能，都增加了很多高级特性，我觉得有三个特性比较重要： 分布式事务的支持 数据的强一致]]></description>
+</item>
+<item>
+    <title>TiDB Insert 执行流程图</title>
+    <link>https://mazhen.tech/insert-overview/</link>
+    <pubDate>Tue, 15 May 2018 14:38:05 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/insert-overview/</guid>
+    <description><![CDATA[TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理解对这幅图扩展]]></description>
 </item>
 <item>
     <title>Cursor功能实现总结</title>

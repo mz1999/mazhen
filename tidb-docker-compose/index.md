@@ -21,7 +21,6 @@ cd tidb-docker-compose && sudo docker-compose up -d
 
 ![](https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011433415.png)
 
-
 可以看到，已经启动了三个`tikv`实例，一个`tidb`实例，三个`pd`实例，还有监控和`tidb-vision`。
 
 监控的访问地址是 [http://localhost:3000](http://localhost:3000)，用户名/密码：admin/admin。
@@ -40,7 +39,6 @@ mysql -h 127.0.0.1 -P 4000 -u root
 
 ![](https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011434062.png)
 
-
 然后启动MySQL容器，注意要加入`TiDB`集群的`docker`网络：
 
 ```
@@ -58,7 +56,6 @@ mysql -h tidb -P 4000 -u root
 ```
 sudo docker-compose down
 ```
-
 
 如果自己build了`TiDB`版本想在本机run集群，[文档](https://github.com/pingcap/tidb-docker-compose)写的很清楚，告诉你镜像应该放在什么位置。
 
