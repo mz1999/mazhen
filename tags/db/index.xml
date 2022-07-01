@@ -1,0 +1,80 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>db - Tag - mazhen.tech</title>
+        <link>https://mazhen.tech/tags/db/</link>
+        <description>db - Tag - mazhen.tech</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 15 May 2022 14:38:05 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/db/" rel="self" type="application/rss+xml" /><item>
+    <title>TiDB Insert 执行流程图</title>
+    <link>https://mazhen.tech/insert-overview/</link>
+    <pubDate>Sun, 15 May 2022 14:38:05 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/insert-overview/</guid>
+    <description><![CDATA[TiDB Insert 执行流程图 TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理]]></description>
+</item>
+<item>
+    <title>关系数据库查询处理基础知识扫盲</title>
+    <link>https://mazhen.tech/rdbms-fundamental/</link>
+    <pubDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/rdbms-fundamental/</guid>
+    <description><![CDATA[当TiDB 源码阅读系列更新到第六篇《Select 语句概览》时，我发现需要一些关系数据库的基础知识才能更好的理解，例如逻辑查询计划优化其实就是]]></description>
+</item>
+<item>
+    <title>关于MySQL XA事务的隔离级别</title>
+    <link>https://mazhen.tech/mysql-xa/</link>
+    <pubDate>Tue, 05 Jun 2018 14:44:59 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/mysql-xa/</guid>
+    <description><![CDATA[为什么XA事务建议用SERIALIZABLE隔离级别 在MySQL最新的官方文档中，关于XA Transactions的介绍有这么一段描述： As with]]></description>
+</item>
+<item>
+    <title>从RadonDB看新型数据库中间件的特性</title>
+    <link>https://mazhen.tech/radondb/</link>
+    <pubDate>Sun, 03 Jun 2018 14:43:12 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/radondb/</guid>
+    <description><![CDATA[现在新出现的MySQL中间件除了基本的数据sharding功能，都增加了很多高级特性，我觉得有三个特性比较重要： 分布式事务的支持 数据的强一致]]></description>
+</item>
+<item>
+    <title>Cursor功能实现总结</title>
+    <link>https://mazhen.tech/cursor-summary/</link>
+    <pubDate>Fri, 11 May 2018 17:01:04 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/cursor-summary/</guid>
+    <description><![CDATA[alt : Cursor功能实现总结.pdf]]></description>
+</item>
+<item>
+    <title>TiDB SQL Parser 的实现</title>
+    <link>https://mazhen.tech/sql-parser/</link>
+    <pubDate>Wed, 09 May 2018 14:34:58 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/sql-parser/</guid>
+    <description><![CDATA[PingCAP发布了TiDB的源码阅读系列文章，让我们可以比较系统的去学习了解TiDB的内部实现。最近的一篇《SQL 的一生》，从整体上讲解了]]></description>
+</item>
+<item>
+    <title>基于代价优化（CBO）实现代码导读</title>
+    <link>https://mazhen.tech/cbo-guide/</link>
+    <pubDate>Tue, 08 May 2018 14:40:17 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/cbo-guide/</guid>
+    <description><![CDATA[配合这篇《基于代价的优化》 阅读。 CBO的整体思路是：从逻辑查询计划树，自上而下枚举每个逻辑运算符可能的物理算子，从所有可能的执行路径中选择一]]></description>
+</item>
+<item>
+    <title>利用docker compose在单机上玩转TiDB</title>
+    <link>https://mazhen.tech/tidb-docker-compose/</link>
+    <pubDate>Fri, 09 Feb 2018 14:32:20 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/tidb-docker-compose/</guid>
+    <description><![CDATA[TiDB提供了docker compose的部署方式，可以很方便的在单机上搭建一个TiDB集群作为开发测试环境。如果修改了TiDB源码，可以使]]></description>
+</item>
+<item>
+    <title>TiDB初探</title>
+    <link>https://mazhen.tech/tidb-glance/</link>
+    <pubDate>Fri, 09 Feb 2018 14:28:29 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/tidb-glance/</guid>
+    <description><![CDATA[翻了一下TiDB的文档，对TiDB有了个大概的了解。简单说，TiDB的实现架构是：底层是分布式KV引擎TiKV，上层是SQL引擎TiDB Se]]></description>
+</item>
+</channel>
+</rss>

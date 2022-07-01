@@ -1,0 +1,24 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>golang - Tag - mazhen.tech</title>
+        <link>https://mazhen.tech/tags/golang/</link>
+        <description>golang - Tag - mazhen.tech</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/golang/" rel="self" type="application/rss+xml" /><item>
+    <title>Golang error处理实践</title>
+    <link>https://mazhen.tech/golang-error-handling/</link>
+    <pubDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/golang-error-handling/</guid>
+    <description><![CDATA[Go的错误处理机制很简洁，使用errors.New(text)创建 error，方法的调用者一般按照如下模式处理： 1 2 3 if err != nil { return err } 这样做]]></description>
+</item>
+<item>
+    <title>Go语言的引用类型</title>
+    <link>https://mazhen.tech/go-reference-types/</link>
+    <pubDate>Mon, 05 Mar 2018 14:20:18 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/go-reference-types/</guid>
+    <description><![CDATA[Go中的引用类型不是指针，而是对指针的包装，在它的内部通过指针引用底层数据结构。每一种引用类型也包含一些其他的field，用来管理底层的数据]]></description>
+</item>
+</channel>
+</rss>

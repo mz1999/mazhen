@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Go语言的引用类型 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Go语言的引用类型" />
+<meta property="og:description" content="Go中的引用类型不是指针，而是对指针的包装，在它的内部通过指针引用底层数据结构。每一种引用类型也包含一些其他的field，用来管理底层的数据" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/go-reference-types/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-03-05T14:20:18+08:00" />
+<meta property="article:modified_time" content="2018-03-05T14:20:18+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="Go语言的引用类型"/>
+<meta name="twitter:description" content="Go中的引用类型不是指针，而是对指针的包装，在它的内部通过指针引用底层数据结构。每一种引用类型也包含一些其他的field，用来管理底层的数据"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/go-reference-types/" /><link rel="prev" href="https://mazhen.tech/tidb-docker-compose/" /><link rel="next" href="https://mazhen.tech/golang-error-handling/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Go语言的引用类型",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/go-reference-types\/"
+        },"genre": "posts","keywords": "golang","wordcount":  1189 ,
+        "url": "https:\/\/mazhen.tech\/go-reference-types\/","datePublished": "2018-03-05T14:20:18+08:00","dateModified": "2018-03-05T14:20:18+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Go语言的引用类型</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-03-05">2018-03-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1189 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
+            </div><div class="content" id="content"><p>Go中的引用类型不是指针，而是对指针的包装，在它的内部通过指针引用底层数据结构。每一种引用类型也包含一些其他的<code>field</code>，用来管理底层的数据结构。</p>
+<p>看一个例子比较直观：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">s := []string{&#34;a&#34;,&#34;b&#34;, &#34;c&#34;}
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>简单解释一下这段代码。先初始化一个<code>slice</code>，然后使用<code>unsafe.Pointer(&amp;s)</code>把<code>slice</code>的指针转换为通用指针<code>Pointer</code>。<a href="https://golang.org/pkg/unsafe/#Pointer" target="_blank" rel="noopener noreffer ">Pointer</a>是可以代表任何数据类型的指针。最后把<code>Pointer</code>强制转换为<code>*reflect.SliceHeader</code>。<a href="https://golang.org/pkg/reflect/#SliceHeader" target="_blank" rel="noopener noreffer ">SliceHeader</a>代表的是<code>slice</code>运行时数据结构，定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type SliceHeader struct {
+</span></span><span class="line"><span class="cl">	Data uintptr
+</span></span><span class="line"><span class="cl">	Len  int
+</span></span><span class="line"><span class="cl">	Cap  int
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看到，<code>SliceHeader</code>内部有一个用来指向底层数组的指针<code>Data</code>，另外还有两个属性<code>Len</code>和<code>Cap</code>用来保存<code>slice</code>的内部状态。</p>
+<p>上面的代码运行结果如下：</p>
+<p><code>&amp;reflect.SliceHeader{Data:0xc420078180, Len:3, Cap:3} </code></p>
+<p><code>slice</code>可以自动扩容，当底层数组容量不够时，会自动创建一个新的数组替换。让我们做个实验：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">s := []string{&#34;a&#34;,&#34;b&#34;, &#34;c&#34;}
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">fmt.Println()
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">s = append(s, &#34;d&#34;)
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">fmt.Println()
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">s = append(s, &#34;e&#34;)
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">fmt.Println()
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行结果如下：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422594.png" /></p>
+<p>对于初始化容量为3的<code>slice</code>，在向这个<code>slice</code> append 新元素时，底层会创建一个容量翻倍的新数组，并将原先的内容复制过来，再将新元素<code>append</code>到最后。我们可以看到这个<code>slice</code>内部保存底层数组的指针在第一次<code>append</code>后，指向了新的地址。当再向它<code>append</code>新元素时，由于底层数组还有空间，内部指针保持不变，只是更新<code>Len</code>属性为5。</p>
+<p>在Go中进行函数调用时，参数都是按值传递的。对于引用类型也是按值传递，会复制引用本身，但不会复制引用指向的底层数据结构。还是看代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">func foo(s []string) {
+</span></span><span class="line"><span class="cl">	fmt.Println(&#34;======= func foo =======&#34;)
+</span></span><span class="line"><span class="cl">	s = append(s, &#34;f&#34;)
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;&amp;s: %p \n&#34;, &amp;s)
+</span></span><span class="line"><span class="cl">	fmt.Println(&#34;========================\n&#34;)
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">func main() {
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">   ......
+</span></span><span class="line"><span class="cl">   
+</span></span><span class="line"><span class="cl">	s = append(s, &#34;e&#34;)
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;&amp;s: %p \n&#34;, &amp;s)
+</span></span><span class="line"><span class="cl">	fmt.Println()
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	foo(s)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, s)
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;%#v \n&#34;, (*reflect.SliceHeader)(unsafe.Pointer(&amp;s)))
+</span></span><span class="line"><span class="cl">	fmt.Printf(&#34;&amp;s: %p \n&#34;, &amp;s)
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>运行结果为：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011422106.png" /></p>
+<p>在函数调用时，传递给函数的<code>slice</code>进行了复制，函数的参数是一个新的<code>slice</code>，但<code>slice</code>内部指针指向的底层数组还是同一个。</p>
+<p>完整的示例代码在<a href="https://play.golang.org/p/qwwSuskLfCa" target="_blank" rel="noopener noreffer ">https://play.golang.org/p/qwwSuskLfCa</a>，可以在Playground中直接运行。</p>
+<p>Go语言的引用类型有<code>slice</code>, <code>map</code>, <code>channel</code>, <code>interface</code>和<code>function</code>。技术上，<a href="https://golang.org/pkg/reflect/#StringHeader" target="_blank" rel="noopener noreffer ">string</a>也是引用类型：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type StringHeader struct {
+</span></span><span class="line"><span class="cl">        Data uintptr
+</span></span><span class="line"><span class="cl">        Len  int
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>有时候为了性能优化，可以利用<code>[]byte</code>和<code>string</code>头部结构的“部分相同”，以非安全的指针类型转换来实现类型变更，避免底层数组的复制。例如 <code>TiDB</code> 中就使用了这个<a href="https://github.com/pingcap/tidb/blob/master/util/hack/hack.go" target="_blank" rel="noopener noreffer ">技巧</a>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// String converts slice to string without copy.
+</span></span><span class="line"><span class="cl">// Use at your own risk.
+</span></span><span class="line"><span class="cl">func String(b []byte) (s string) {
+</span></span><span class="line"><span class="cl">	if len(b) == 0 {
+</span></span><span class="line"><span class="cl">		return &#34;&#34;
+</span></span><span class="line"><span class="cl">	}
+</span></span><span class="line"><span class="cl">	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&amp;b))
+</span></span><span class="line"><span class="cl">	pstring := (*reflect.StringHeader)(unsafe.Pointer(&amp;s))
+</span></span><span class="line"><span class="cl">	pstring.Data = pbytes.Data
+</span></span><span class="line"><span class="cl">	pstring.Len = pbytes.Len
+</span></span><span class="line"><span class="cl">	return
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">// Slice converts string to slice without copy.
+</span></span><span class="line"><span class="cl">// Use at your own risk.
+</span></span><span class="line"><span class="cl">func Slice(s string) (b []byte) {
+</span></span><span class="line"><span class="cl">	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&amp;b))
+</span></span><span class="line"><span class="cl">	pstring := (*reflect.StringHeader)(unsafe.Pointer(&amp;s))
+</span></span><span class="line"><span class="cl">	pbytes.Data = pstring.Data
+</span></span><span class="line"><span class="cl">	pbytes.Len = pstring.Len
+</span></span><span class="line"><span class="cl">	pbytes.Cap = pstring.Len
+</span></span><span class="line"><span class="cl">	return
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面两个函数实现了<code>[]byte</code>和<code>string</code>的互相转换，不需要底层数组的copy。</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-03-05</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/go-reference-types/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/go-reference-types/" data-title="Go语言的引用类型" data-via="mazhen" data-hashtags="golang"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/go-reference-types/" data-hashtag="golang"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/go-reference-types/" data-title="Go语言的引用类型"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/go-reference-types/" data-title="Go语言的引用类型"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/golang/">golang</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/tidb-docker-compose/" class="prev" rel="prev" title="利用docker compose在单机上玩转TiDB"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>利用docker compose在单机上玩转TiDB</a>
+            <a href="/golang-error-handling/" class="next" rel="next" title="Golang error处理实践">Golang error处理实践<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script></body>
+</html>

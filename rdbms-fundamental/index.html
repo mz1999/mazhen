@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>关系数据库查询处理基础知识扫盲 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="关系数据库查询处理基础知识扫盲" />
+<meta property="og:description" content="当TiDB 源码阅读系列更新到第六篇《Select 语句概览》时，我发现需要一些关系数据库的基础知识才能更好的理解，例如逻辑查询计划优化其实就是" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/rdbms-fundamental/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-07-01T17:04:31+08:00" />
+<meta property="article:modified_time" content="2018-07-01T17:04:31+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="关系数据库查询处理基础知识扫盲"/>
+<meta name="twitter:description" content="当TiDB 源码阅读系列更新到第六篇《Select 语句概览》时，我发现需要一些关系数据库的基础知识才能更好的理解，例如逻辑查询计划优化其实就是"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/rdbms-fundamental/" /><link rel="prev" href="https://mazhen.tech/mysql-xa/" /><link rel="next" href="https://mazhen.tech/insert-overview/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "关系数据库查询处理基础知识扫盲",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/rdbms-fundamental\/"
+        },"genre": "posts","keywords": "db","wordcount":  7210 ,
+        "url": "https:\/\/mazhen.tech\/rdbms-fundamental\/","datePublished": "2018-07-01T17:04:31+08:00","dateModified": "2018-07-01T17:04:31+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">关系数据库查询处理基础知识扫盲</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-07-01">2018-07-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;7210 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;15 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#极简数据库发展史">极简数据库发展史</a></li>
+    <li><a href="#关系数据模型-和-关系代数">关系数据模型 和 关系代数</a>
+      <ul>
+        <li><a href="#关系数据模型">关系数据模型</a></li>
+        <li><a href="#关系代数">关系代数</a>
+          <ul>
+            <li><a href="#传统的集合运算">传统的集合运算</a></li>
+            <li><a href="#专门的关系运算">专门的关系运算</a></li>
+            <li><a href="#关系代数的扩展操作符">关系代数的扩展操作符</a></li>
+          </ul>
+        </li>
+        <li><a href="#关系代数小结">关系代数小结</a></li>
+      </ul>
+    </li>
+    <li><a href="#sql-的诞生">SQL 的诞生</a></li>
+    <li><a href="#关系数据库的查询处理器">关系数据库的查询处理器</a>
+      <ul>
+        <li><a href="#查询示例">查询示例</a></li>
+        <li><a href="#sql-语法分析">SQL 语法分析</a></li>
+        <li><a href="#生成逻辑查询计划">生成逻辑查询计划</a></li>
+        <li><a href="#逻辑查询计划的改进">逻辑查询计划的改进</a></li>
+        <li><a href="#物理查询计划的生成">物理查询计划的生成</a>
+          <ul>
+            <li><a href="#基于代价的物理计划选择">基于代价的物理计划选择</a></li>
+            <li><a href="#枚举物理查询计划">枚举物理查询计划</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#写在最后">写在最后</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>当<a href="https://pingcap.com/blog-cn/#%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB" target="_blank" rel="noopener noreffer ">TiDB 源码阅读系列</a>更新到第六篇<a href="https://pingcap.com/blog-cn/tidb-source-code-reading-6/" target="_blank" rel="noopener noreffer ">《Select 语句概览》</a>时，我发现需要一些关系数据库的基础知识才能更好的理解，例如逻辑查询计划优化其实就是：使用<strong>代数定律</strong>对查询语句的<strong>代数表达式树</strong>做等价转换，使改进后的<strong>代数表达式树</strong>预期可以生成更有效的<strong>物理查询计划</strong>。有了这些基础知识，看代码才能做到知其然知其所以然。本文希望通过梳理关系数据库背后的知识，为读懂 <code>TiDB</code> 查询处理器部分的源码扫清障碍。</p>
+<h2 id="极简数据库发展史">极简数据库发展史</h2>
+<p>数据库的应用及其广泛，已经成为信息系统的核心技术和重要的基础设施。简单说数据库需要做两件事：存储数据，以及随后在你需要的时候能访问读取数据。</p>
+<p>最早的数据库是基于<strong>文件系统</strong>，虽然它满足了长期存储数据的需求，但没有提供对文件的查询语言，读取访问非常不便利。于是人们在文件系统上引入一层抽象：<strong>数据模型</strong>。数据模型是对现实世界数据特征的抽象，能比较真实地模拟现实世界，容易为人所理解，也便于在计算机上实现。</p>
+<p>最早出现的是<strong>层次模型</strong>（<a href="https://en.wikipedia.org/wiki/Hierarchical_database_model" target="_blank" rel="noopener noreffer ">Hierarchical Model</a>），数据被组织为一棵树，类似于今天<strong>文档数据库</strong>使用的<code>JSON</code>的结构。<strong>层次模型</strong>很适合处理<strong>one-to-many</strong>关系，但要表现<strong>many-to-many</strong>关系则非常困难，一般也不支持<code>join</code>。使用<strong>层次模型</strong>最著名的数据库是 <code>IBM</code> 的<strong>Information Management System (IMS)</strong>，它最初是为了解决阿波罗飞船登月计划的需求，协调分散在全球制造的200万个阿波罗飞船零部件的生产进度。</p>
+<p>随后出现了不同的方案解决<strong>层次模型</strong>的限制，其中最突出的两个模型是<strong>网络模型</strong>（<a href="https://en.wikipedia.org/wiki/Network_model" target="_blank" rel="noopener noreffer ">Network Model</a>）和<strong>关系数据模型</strong>，最终关系数据模型胜出。</p>
+<p>今天最著名和使用最广泛的数据模型是由 <a href="https://en.wikipedia.org/wiki/Edgar_F._Codd" target="_blank" rel="noopener noreffer ">Edgar Codd</a> 博士提出的<strong>关系数据模型</strong>，他在1970年发布的论文<a href="http://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf" target="_blank" rel="noopener noreffer ">《A Relational Model of Data for Large Shared Data Banks》</a>，奠定了关系数据库的理论基础。ACM在1983年把这篇论文列为从1958年以来的四分之一世纪中具有里程碑式意义的最重要的25篇研究论文之一。到了80年代中期，基于关系数据模型的<strong>关系数据库</strong>已经成为人们存储、查询结构化数据的首选工具。</p>
+<p>到了2010年，<strong>NoSQL</strong>兴起，试图颠覆<strong>关系数据模型</strong>的统治地位。随着互联网的爆发式发展，数据库领域又一次发生了摇摆，伴随着互联网的特殊需求，一批有着新鲜血液的 <strong>NoSQL</strong> 数据库涌现了出来，<strong>层次模型</strong>又重新站在了大家面前。<strong>NoSQL</strong>为了应对海量数据存储和高并发访问，决定放弃<strong>关系数据模型</strong>和<strong>事务</strong>等关系数据数据库的关键特性。自从 <strong>NoSQL</strong> 概念横空出世，关系数据库似乎成了低效、高成本、速度慢的数据处理模式的代名词。然而，<strong>NoSQL</strong>在解决问题的同时也给使用者带来了很多困扰， <strong>最终一致</strong>让应用开发者要面对各种复杂的场景。</p>
+<p>数据库技术的发展是螺旋式上升，Google发布的<code>Spanner</code>和<code>F1</code>两篇论文，让人们看到了<strong>关系数据模型</strong> 和 <strong>NoSQL</strong> 融合的可能性。以 <a href="https://github.com/pingcap/tidb" target="_blank" rel="noopener noreffer ">TiDB</a> 为代表的 <strong>NewSQL</strong> 数据库，让人们重新享受关系模型、强一致性事务等对使用者友好的特性，同时也具备了 <strong>NoSQL</strong> 的水平扩展能力。</p>
+<h2 id="关系数据模型-和-关系代数">关系数据模型 和 关系代数</h2>
+<p><strong>数据模型</strong>是对现实世界事物的抽象，而<strong>关系数据模型</strong>将一切事物都抽象为<strong>关系</strong>，并通过集合运算的方式规定了关系之间的运算过程，模型相对的比较简单，数据证明严谨，因此很快被大家广泛接受。</p>
+<p>这一节我将介绍关系数据库的数学基础：<strong>关系数据模型</strong>和<strong>关系代数</strong>。</p>
+<h3 id="关系数据模型">关系数据模型</h3>
+<p>关系模型为人们提供了一种描述数据的方法：一个称为<strong>关系</strong>（relation）的二维表。现实世界的实体以及实体间的各种联系都可以用<strong>关系</strong>来表示。我们通过例子来了解关系模型的重要术语：</p>
+<p><strong>雇员表</strong></p>
+<table>
+<thead>
+<tr>
+<th>emp_no</th>
+<th>name</th>
+<th>birth_date</th>
+<th>gender</th>
+<th>hire_date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>汤唯</td>
+<td>1990-06-08</td>
+<td>女</td>
+<td>2015-08-01</td>
+</tr>
+<tr>
+<td>2</td>
+<td>刘亦菲</td>
+<td>1994-09-10</td>
+<td>女</td>
+<td>2017-05-06</td>
+</tr>
+<tr>
+<td>3</td>
+<td>刘德华</td>
+<td>1986-04-18</td>
+<td>男</td>
+<td>2008-09-01</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>关系（Relation）</strong> ：一个关系对应通常说的一张二维表</li>
+<li><strong>元组（Tuple）</strong> ： 表中的一行即为一个元组</li>
+<li><strong>属性（Attribute）</strong> ：表中的一列即为一个<strong>属性</strong>，给每一个属性起一个名称即<strong>属性名</strong></li>
+<li><strong>键（Key）</strong>：表中的某个属性组，它可以唯一确定一个元组</li>
+<li><strong>域（Domain）</strong> : 是一组具有相同数据类型的值的集合。属性的取值范围来自某个域。例如性别的域是（男，女）。</li>
+<li><strong>关系模式（schema）</strong>：对关系的描述，先给出一个关系名，其后是用圆括号扩起来的所有属性，例如：<code>employees（emp_no, name, birth_date, gender, hire_date）</code></li>
+</ul>
+<h3 id="关系代数">关系代数</h3>
+<p>一门<strong>代数</strong>是由一些<strong>操作符</strong>和<strong>操作数</strong>组成。例如算术代数的加、减、乘、除是操作符，变量<code>x</code>和常量<code>8</code>是操作数。任何一门代数都允许把操作符作用在操作数上构造出<strong>表达式（expression）</strong>，例如算术表达式 <code>(x+y)*3</code>。</p>
+<p><strong>关系代数</strong> 也是一门代数，它的操作数是<strong>关系</strong>，操作运算符有两类：<strong>集合运算符</strong>和专门的<strong>关系运算符</strong>。</p>
+<p><strong>关系代数</strong>可以认为是一种抽象的查询语言，利用对<strong>关系</strong>的<strong>运算</strong>来表达<strong>查询</strong>，运算对象是<strong>关系</strong>，运算结果也是<strong>关系</strong>。因此，<strong>关系代数</strong>的表达式也被称为<strong>查询（query）</strong>。</p>
+<h4 id="传统的集合运算">传统的集合运算</h4>
+<p>三个最常见的集合操作是：<strong>并</strong>（union）、<strong>交</strong>（intersection）、<strong>差</strong>（difference）。</p>
+<ul>
+<li><code>R ∪ S</code>，表示关系R和S的<strong>并</strong>，得到的结果关系的元素来自R或者S，或R和S中都出现过。</li>
+<li><code>R ∩ S</code>，表示关系R和S的<strong>交</strong>，同时在R和S中存在的元素集合。</li>
+<li><code>R - S</code>，表示关系R和S的<strong>差</strong>，它是由在R中出现但不在S中出现的元素构成的集合。</li>
+</ul>
+<p>另外一个集合操作是<strong>笛卡尔积</strong>（Cartesian Product）。</p>
+<ul>
+<li>关系R和S的<strong>笛卡尔积</strong>是一个有序对的集合，有序对的一个元素是关系R中的任何一个元组，第二个元素是关系S中的任何一个元组表示为 <code>R × S</code>。</li>
+</ul>
+<p>关系R</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>关系S</p>
+<table>
+<thead>
+<tr>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>4</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+</tr>
+</tbody>
+</table>
+<p><code>R × S</code>的结果</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>R.B</th>
+<th>S.B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>4</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>2</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>4</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+</tr>
+</tbody>
+</table>
+<h4 id="专门的关系运算">专门的关系运算</h4>
+<ul>
+<li>
+<p><strong>选择</strong>（selection)，当<strong>选择</strong>操作符应用到关系<code>R</code>上时，产生一个关系R的元组的子集合。结果关系元组必须满足某个涉及<code>R</code>中属性的条件<code>C</code>，表示为 σ<sub>C</sub>( R )</p>
+</li>
+<li>
+<p><strong>投影</strong> （projection），用来从一个关系生成一个新的关系，这个关系只包含原来关系<code>R</code>中的部分列。表达式 π<sub>A1,A2,&hellip;,An</sub> ( R ) 的值是这样一个关系，它只包含关系<code>R</code>属性<code>A1,A2,...An</code>所代表的列。</p>
+</li>
+<li>
+<p><strong>θ连接</strong>，关系R和关系S满足条件C的<strong>θ连接</strong>可以用这样的符号来表示： R ⋈<sub>C</sub> S</p>
+</li>
+</ul>
+<p><strong>θ连接</strong>的结果这样构造：</p>
+<ol>
+<li>先得到R和S的<strong>笛卡尔积</strong></li>
+<li>在得到的关系中寻找满足条件<code>C</code>的元组</li>
+</ol>
+<p>关系R</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr>
+<td>9</td>
+<td>7</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p>关系S</p>
+<table>
+<thead>
+<tr>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+</tr>
+<tr>
+<td>7</td>
+<td>8</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p>R ⋈ <sub> A&lt;D  AND  R.B ≠ S.B</sub> S 的结果是：</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>R.B</th>
+<th>R.C</th>
+<th>S.B</th>
+<th>S.C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>7</td>
+<td>8</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p>有两类常用的连接运算：</p>
+<ol>
+<li><strong>等值连接</strong>（equijoin）：比较运算符为 <code>=</code> 的连接运算称为等值连接。例如： R ⋈ <sub>R.A = S.B </sub> S 是从关系R与S的笛卡尔积中选取A、B属性值相等的那些元组。</li>
+<li><strong>自然连接</strong>（Natural join）：自然连接是一种特殊的等值连接，两个关系中进行比较的分量必须是相同的属性组，并在结果中把重复的属性列去掉。关系R和S的自然连接表示为  <code>R ⋈ S</code></li>
+</ol>
+<p>关系R</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>关系S</p>
+<table>
+<thead>
+<tr>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>4</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+</tr>
+</tbody>
+</table>
+<p><code>R ⋈ S</code></p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>7</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p>两个关系R和S在做<strong>自然连接</strong>时，如果一个元组不能和另外关系中的任何一个元组配对的话，这个元组被称为<strong>悬浮元组</strong>（Dangling tuple）。上面的例子中，关系S的第三个元组就是悬浮元组。</p>
+<p>如果把<strong>悬浮元组</strong>也保存在结果关系中，而在其他属性上填<strong>空值</strong>(Null)，就叫做<strong>外连接</strong>（Outer Join）。</p>
+<ol>
+<li><strong>左外连接</strong>(LEFT OUTER JOIN或LEFT JOIN)：只保留左边关系<code>R</code>中的悬浮元组</li>
+<li><strong>右外连接</strong>(RIGHT OUTER JOIN或RIGHT JOIN)：只保留右边关系<code>S</code>中的悬浮元组</li>
+</ol>
+<h4 id="关系代数的扩展操作符">关系代数的扩展操作符</h4>
+<ul>
+<li><strong>消除重复操作符</strong>（duplicated-elimination operator）用 <code>δ(R)</code> 来返回一个没有重复元组的关系<code>R</code></li>
+<li><strong>聚集操作符</strong> （aggregation operator）用来汇总或者聚集关系某一列中出现的值，有 <code>SUM</code>，<code>AVG</code>，<code>MIN</code>，<code>MAX</code>，<code>COUNT</code> 等</li>
+<li><strong>分组操作</strong>（grouping）根据元组在一个或多个属性上的值把关系的元组拆成“组”。这样聚集操作就可以对分组的各个列进行计算。分组操作符 <code>γ</code> 是组合了<strong>分组</strong>和<strong>聚合操作</strong>的一个算子。例如表达式： γ <sub>gender, COUNT(emp_no)-&gt;count</sub>(employees) 代表把性别（<code>gender</code>）作为分组属性，然后对每一个分组进行<code>COUNT(emp_no)</code>的操作。</li>
+<li><strong>排序算子</strong>（sorting operator）如果关系<code>R</code>的模式是 <code>R(A,B,C)</code>，那么 τ<sub>C</sub>( R ) 就把<code>R</code>中的元组按照属性<code>C</code>的值排序。</li>
+</ul>
+<h3 id="关系代数小结">关系代数小结</h3>
+<p>上面的知识有些枯燥，但非常容易理解，因为我们经常使用关系数据库，已经接受了这些概念。掌握了一些关系代数的知识，在阅读<code>TiDB</code>源码时，当看到<code>selection</code>、<code>projection</code> 这些术语就能一下想到它们对应的关系代数运算符。</p>
+<p>这里只介绍了关系代数最基本的概念，如果想完整学习，建议参考斯坦福大学大学的课程<a href="http://infolab.stanford.edu/~ullman/fcdb.html" target="_blank" rel="noopener noreffer ">CS145: A First Course in Database Systems</a>，对应的教材有中文版<a href="https://book.douban.com/subject/3923575/" target="_blank" rel="noopener noreffer ">《数据库系统基础教程》</a>。</p>
+<p>其实我们在查询时提交给数据库的就是<strong>关系代数表达式</strong>，它是关系运算符的组合，数据库会根据一些<strong>代数定律</strong>对最初的表达式做等价变换，得出一个最优的<strong>等价表达式</strong>（equivalent expression），即可以更快的被计算出结果的表达式。这个过程就是<strong>逻辑查询计划优化</strong>，后面我会简单的介绍相关概念。</p>
+<h2 id="sql-的诞生">SQL 的诞生</h2>
+<p><strong>SQL</strong>(Structured Query Language) 结构化查询语言，是关系数据库的标准语言。</p>
+<p>在1970年Codd博士提出了关系模型之后，由于<strong>关系代数</strong>或者<strong>关系</strong>都太数学了，难以被普通用户接受。IBM在研制关系数据库管理系统原型<code>System R</code>的过程中，决定摈弃数学语言，以自然语言为方向，结果诞生了结构化英语查询语言（<code>Structured English Query Language</code>，<code>SEQUEL</code>），后来更名为<strong>SQL</strong>。<code>System R</code> 因此获得1988年度ACM“软件系统奖”。</p>
+<p><strong>SQL</strong>是声明式查询语言，你只需要指定想要获得什么样的数据，而无须了解如何实现这个目标。<strong>SQL</strong>具体是如何执行的，取决于数据库系统的<strong>查询处理器</strong>，它来决定哪些索引和哪些连接方法可以使用，以及以什么样的顺序执行查询的各个部分。<strong>SQL</strong>隐藏了数据库引擎的实现细节，因此用户可以在不修改查询语句的情况下，享受到数据库性能优化带来的好处。</p>
+<p>下面我们来看看数据库的查询处理器。</p>
+<h2 id="关系数据库的查询处理器">关系数据库的查询处理器</h2>
+<p><strong>SQL</strong>是在很高层次上表达查询，那么数据库的<strong>查询处理器</strong>必须提供查询被如何执行的大量细节。下面我从概念上介绍查询处理器的处理流程，实际的数据库实现要复杂的多，特别是像 <code>TiDB</code> 这样的分布式数据库。如果想比较系统的了解数据库的实现技术，同样推荐斯坦福大学计算机科学专业的课程 <a href="http://infolab.stanford.edu/~ullman/dbsi.html" target="_blank" rel="noopener noreffer ">CS245: Database System Implementation</a>。上面提到的<a href="http://infolab.stanford.edu/~ullman/fcdb.html" target="_blank" rel="noopener noreffer ">CS145</a>是<a href="http://infolab.stanford.edu/~ullman/dbsi.html" target="_blank" rel="noopener noreffer ">CS245</a>的预修课。国内很少有讲数据库内部实现的书，这门课的教材值得阅读。当然最好的学习方法是理论联系实践，多去读 <a href="https://github.com/pingcap/tidb" target="_blank" rel="noopener noreffer ">TiDB</a> 的源代码:)</p>
+<p>一般查询处理可以简单的划分为以下几个步骤：</p>
+<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011706716.png" style="zoom:50%;" />
+<ol>
+<li>对SQL进行语法分析，将查询语句转换成<strong>抽象语法树</strong>。</li>
+<li>把<strong>抽象语法树</strong>转换成<strong>关系代数表达式树</strong>，这就是初始的<strong>逻辑查询计划</strong>。</li>
+<li>使用<strong>关系代数</strong>中的多个<strong>代数定律</strong>改进初始的<strong>代数表达式树</strong>。利用一些<strong>代数定律</strong>，可以把<strong>代数表达式树</strong>转换成一个<strong>等价</strong>的表达式树，后者预期可以生成更有效的<strong>物理查询计划</strong>。这一步进行了查询重写，可以称为<strong>逻辑查询计划优化</strong>。</li>
+<li>为<strong>逻辑查询计划</strong>的每一个操作符选择实现算法，并确定这些操作符的执行顺序，<strong>逻辑查询计划</strong>被转化为<strong>物理查询计划</strong>。<strong>物理查询计划</strong>指明了要执行的操作，操作的执行顺序，执行每步所用的算法，获取数据的方式，以及数据从一个操作传递给另一个操作的方式。</li>
+</ol>
+<h3 id="查询示例">查询示例</h3>
+<p>本文准备以一个简单的例子来介绍查询处理的流程，下面是查询涉及的两张表：</p>
+<p><strong>employees</strong></p>
+<table>
+<thead>
+<tr>
+<th>emp_no</th>
+<th>name</th>
+<th>birth_date</th>
+<th>gender</th>
+<th>hire_date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>汤唯</td>
+<td>1990-06-08</td>
+<td>女</td>
+<td>2015-08-01</td>
+</tr>
+<tr>
+<td>2</td>
+<td>刘亦菲</td>
+<td>1994-09-10</td>
+<td>女</td>
+<td>2017-05-06</td>
+</tr>
+<tr>
+<td>3</td>
+<td>刘德华</td>
+<td>1986-04-18</td>
+<td>男</td>
+<td>2008-09-01</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+</tbody>
+</table>
+<p><strong>salaries</strong></p>
+<table>
+<thead>
+<tr>
+<th>emp_no</th>
+<th>salary</th>
+<th>last_modified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>8000</td>
+<td>2018-04-01</td>
+</tr>
+<tr>
+<td>2</td>
+<td>6000</td>
+<td>2018-04-01</td>
+</tr>
+<tr>
+<td>3</td>
+<td>15000</td>
+<td>2018-04-01</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+</tbody>
+</table>
+<p>想要获取工资大于7000的员工姓名列表，SQL语句可以这么写：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">SELECT name
+</span></span><span class="line"><span class="cl">FROM employees, salaries
+</span></span><span class="line"><span class="cl">WHERE employees.emp_no = salaries.emp_no AND
+</span></span><span class="line"><span class="cl">      salary &gt; 7000;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="sql-语法分析">SQL 语法分析</h3>
+<p><code>SQL Parser</code>的功能是把SQL语句按照SQL语法规则进行解析，将文本转换成<strong>抽象语法树</strong>（AST）。具体的实现可以参考这篇文章<a href="https://github.com/mz1999/Apusic-db-team/blob/master/docs/sql-parser.md" target="_blank" rel="noopener noreffer ">《TiDB SQL Parser 的实现》</a>。 示例SQL解析完成后得到下面的语法树：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png" /></p>
+<h3 id="生成逻辑查询计划">生成逻辑查询计划</h3>
+<p>现在将上一步生成的语法树转换成<strong>关系代数表达式树</strong>，也就是<strong>逻辑查询计划</strong>。对于示例SQL的抽象语法树转换过程如下：</p>
+<ul>
+<li><code>&lt;FromList&gt;</code> 中涉及的关系<code>employees</code>和<code>salaries</code>做笛卡尔积运算</li>
+<li>选择（selection）运算 σ<sub>C</sub>，其中<code>C</code>被替换成<code>&lt;Condition&gt;</code>表达式，即<code>employees.emp_no = salaries.emp_no AND salary &gt; 7000</code></li>
+<li>投影（projection） π<sub>L</sub>，其中<code>L</code>是<code>&lt;SelList&gt;</code>中的属性列表，对于这个查询只有一个属性<code>name</code></li>
+</ul>
+<p>我们得到下面的关系代数表达式树：</p>
+<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707826.png" style="zoom:67%;" />
+<h3 id="逻辑查询计划的改进">逻辑查询计划的改进</h3>
+<p>当我们把查询语句转换成关系代数表达式时，得到了一个初始的<strong>逻辑查询计划</strong>。现在我们可以使用关系代数中的多个<strong>代数定律</strong>改进<strong>逻辑查询计划</strong>。</p>
+<p>这里仅仅列出一小部分这样的<strong>代数定律</strong>，它们可以将一个表达式树转换成一个<strong>等价</strong>的表达式树。</p>
+<ul>
+<li>交换律和结合律</li>
+</ul>
+<p>R × S = S × R; (R X S) × T = R × (S × T)</p>
+<p>R ⋈ S = S ⋈ R; (R ⋈ S) ⋈ T = R ⋈ (S ⋈ T)</p>
+<p>R ∪ S = S ∪ R; (R ∪ S) ∪ T = R ∪ (S ∪ T)</p>
+<p>R ∩ S = S ∩ R; (R ∩ S) ∩ T = R ∩ (S ∩ T)</p>
+<ul>
+<li>涉及选择的定律</li>
+</ul>
+<p>σ<sub>C1 AND C2</sub> = σ<sub>C1</sub>(σ<sub>C2</sub>( R ))</p>
+<p>σ<sub>C1 OR C2</sub> = (σ<sub>C1</sub>( R ) ∪ (σ<sub>C2</sub>( R ) )</p>
+<p>σ<sub>C1</sub>(σ<sub>C2</sub>( R )) = σ<sub>C2</sub>(σ<sub>C1</sub>( R ))</p>
+<ul>
+<li>下推选择</li>
+</ul>
+<p>在表达式中下推选择是查询优化器最强有力的工具。</p>
+<p>σ<sub>C</sub>( R × S ) = σ<sub>C</sub>( R ) × S</p>
+<p>σ<sub>C</sub>( R ⋈ S) = σ<sub>C</sub>( R ) ⋈ S</p>
+<p>σ<sub>C</sub>( R ⋈<sub>D</sub> S) = σ<sub>C</sub>( R ) ⋈<sub>D</sub> S</p>
+<ul>
+<li>涉及连接和笛卡尔积的定律</li>
+</ul>
+<p>R ⋈<sub>C</sub> S = σ<sub>C</sub>( R × S)</p>
+<ul>
+<li>涉及消除重复的定律</li>
+</ul>
+<p>δ(R×S) = δ( R ) × δ(S)</p>
+<p>δ(R⋈<sub>C</sub>S) = δ( R ) ⋈<sub>C</sub> δ(S)</p>
+<p>另外还有涉及投影的定律、涉及分组和聚集的定律。这部分有些理论化，可以参考这篇<a href="https://pingcap.com/blog-cn/tidb-source-code-reading-7/" target="_blank" rel="noopener noreffer ">《TiDB 源码阅读系列文章（七）基于规则的优化》</a>看看 <code>TiDB</code> 具体是怎么做的。</p>
+<p>对于本例使用到的定律比较简单。先将选择的两部分分解为 σ<sub>employees.emp_no = salaries.emp_no</sub>
+和 σ<sub>salary &gt; 7000</sub>，后者可以在树中下推。第一个条件涉及笛卡尔积两边的属性，可以把上面提到的定律 R ⋈<sub>C</sub> S = σ<sub>C</sub>( R × S)</p>
+<p>从右向左使用，把<strong>笛卡尔积</strong>转换成<strong>连接</strong>。使用了两个定律后，得到优化后的逻辑查询计划如下图：</p>
+<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011708287.png" style="zoom:67%;" />
+<h3 id="物理查询计划的生成">物理查询计划的生成</h3>
+<p>这一步我们需要把<strong>逻辑查询计划</strong>转换成<strong>物理查询计划</strong>。通常由逻辑计划可以得到多个物理计划，我们需要对每个物理计划进行评估，选择具有最小估计代价的物理查询计划。</p>
+<h4 id="基于代价的物理计划选择">基于代价的物理计划选择</h4>
+<p>在从逻辑计划构建物理计划的时候，因为可能得到多个物理计划，我们需要通过估计物理计划执行的代价来确定最优选择。</p>
+<p>如何计算这个代价呢？我们可以用物理计划每一步的任务执行时发生的磁盘I/O数、网络吞吐量、占用的内存空间大小等近似估算。</p>
+<p>这些资源的访问和占用，又是由什么决定的呢？可能包括的决定因素有：</p>
+<ul>
+<li>参与运算任务执行的数据大小</li>
+<li>数据的分布位置（连续的磁盘空间、离散的磁盘空间、网络节点等）</li>
+<li>关系中属性的不同值的数目</li>
+<li>属性值的最大值、最小值、以及值的分布情况</li>
+</ul>
+<p>数据库会收集统计这些信息，用来估算具体任务的代价。</p>
+<p>逻辑查询计划在转换成物理计划的时候，每一步的转换都会面临多种情况的选择，最容易想到的是使用穷举法，估算每一种情况的代价，最后确定最优的物理计划。但使用穷举法的话，很可能估算本身的代价变得非常大，实践中可以采用<strong>动态规划</strong>（dynamic programming）等算法。</p>
+<h4 id="枚举物理查询计划">枚举物理查询计划</h4>
+<p>以上一步输出的逻辑查询计划为例，看看在枚举物理查询计划时需要做出哪些选择。</p>
+<p>首先，逻辑查询计划的每个结点转换成什么样的物理运算符会遇到多种选择。我们从逻辑查询计划树自底往上来看：</p>
+<ul>
+<li>逻辑计划的叶子结点</li>
+</ul>
+<p>逻辑查询计划树的叶子结点被一个<strong>扫描运算符</strong>替代。这些运算符一般包括：</p>
+<ol>
+<li><strong>TableScan( R )</strong>：以任意顺序读人所有元组</li>
+<li><strong>SortScan(R, L)</strong>：按照顺序读入<code>R</code>的元组，并以列<code>L</code>中的属性进行排列</li>
+<li><strong>IndexScan(R, C)</strong>：<code>C</code>是一个带有比较运算符的条件，例如 <code>A = 100</code>，<code>A</code>是<code>R</code>的一个属性，如果<code>A</code>上建立的索引，可以通过索引来访问<code>R</code>的元组。如果比较运算符不是等值比较，则索引必须是一个支持范围查询的索引，例如<code>B+ Tree</code></li>
+<li><strong>IndexScan(R, A)</strong>：这里<code>A</code>是<code>R</code>的一个属性，关系<code>R</code>通过<code>A</code>上的索引被检索。 如果<code>R</code>的数据在磁盘上不是占用连续的存储空间，该运算符可能比<strong>TableScan</strong>更有效。</li>
+</ol>
+<ul>
+<li>逻辑计划的σ选择（selection)结点</li>
+</ul>
+<p><code>σ</code>选择结点一般有两种选择：</p>
+<ol>
+<li>可以简单的用物理过滤运算符<code>Filter( C )</code>替代 σ<sub>C</sub>( R )</li>
+<li>如果<code>C</code>是一个带有比较运算符的条件，例如 <code>A = 100</code>，并且属性<code>A</code>上有索引，可以把比较运算合并到<strong>扫描运算符</strong>：<code>IndexScan(R, A = 100)</code>。</li>
+</ol>
+<p>对于本例，<code>salary</code> 一般都不会建立索引，因此可以把<code>σ( salary &gt; 7000 )</code> 替换为 <code>Filter( salary &gt; 7000 )</code></p>
+<ul>
+<li>逻辑计划的连接结点</li>
+</ul>
+<p>常见的<strong>等值连接</strong>满足<strong>结合律</strong>和<strong>交换律</strong>，因此<strong>连接</strong>可以得到很多候选的物理执行计划。其中最关键的问题是确定连接顺序。</p>
+<p>当两个关系连接，只有两种选择，一般我们应该将估计值较小的关系放在前面。当连接有2个以上关系时，可能的连接树的数量会迅速增加，例如4个关系的连接将会有<code>4!=24</code>种连接方式。这一部分很复杂，就不在本文讨论了。</p>
+<p>除了连接顺序，还需要确定具体使用的连接算法。常见的算法有：</p>
+<ol>
+<li><strong>nested loops</strong></li>
+<li><strong>基于排序的join</strong>（sort merge join）</li>
+<li><strong>hash join</strong></li>
+<li><strong>基于索引的join</strong></li>
+</ol>
+<ul>
+<li>逻辑计划的投影结点</li>
+</ul>
+<p>投影结点的任务比较明确，输出包含指定列的关系。</p>
+<p>除了将逻辑查询计划的结点转换成物理运算符，在选择物理计划时还要考虑数据如何在运算符之间流动（中间结果保存到磁盘或流水线方式），物理运算符的执行顺序等。这些细节本文就不再讨论。</p>
+<p>最后，假定我们在所有选择的组合中，确定了其中一个作为最优的物理查询计划，然后就可以把它交给查询执行器真正的执行了：</p>
+<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011710602.png" style="zoom:50%;" />
+<h2 id="写在最后">写在最后</h2>
+<p>本文把关系数据库查询处理涉及的基础知识进行了梳理，希望对你理解 <code>TiDB</code> 的代码能有所帮助。</p>
+<p>数据库是一个非常迷人的领域，它有很强的理论基础，同时又涉及大量的工程实践，可以说是最复杂的系统软件之一。我相信能开发数据库是很多程序员的梦想。梦想还是要有的，让我们一起努力吧！</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-07-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/rdbms-fundamental/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/rdbms-fundamental/" data-title="关系数据库查询处理基础知识扫盲" data-via="mazhen" data-hashtags="db"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/rdbms-fundamental/" data-hashtag="db"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/rdbms-fundamental/" data-title="关系数据库查询处理基础知识扫盲"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/rdbms-fundamental/" data-title="关系数据库查询处理基础知识扫盲"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/db/">db</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/mysql-xa/" class="prev" rel="prev" title="关于MySQL XA事务的隔离级别"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>关于MySQL XA事务的隔离级别</a>
+            <a href="/insert-overview/" class="next" rel="next" title="TiDB Insert 执行流程图">TiDB Insert 执行流程图<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script></body>
+</html>

@@ -4,7 +4,15 @@
         <link>https://mazhen.tech/tags/networking/</link>
         <description>networking - Tag - mazhen.tech</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Wed, 10 Sep 2014 11:04:27 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/networking/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/networking/" rel="self" type="application/rss+xml" /><item>
+    <title>为Wireshark编写HSF2协议解析插件</title>
+    <link>https://mazhen.tech/hsf/</link>
+    <pubDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/hsf/</guid>
+    <description><![CDATA[为Wireshark编写HSF2协议解析插件 Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很]]></description>
+</item>
+<item>
     <title>从开发角度看DNS</title>
     <link>https://mazhen.tech/dns/</link>
     <pubDate>Wed, 10 Sep 2014 11:04:27 &#43;0800</pubDate>

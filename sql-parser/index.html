@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>TiDB SQL Parser 的实现 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="TiDB SQL Parser 的实现" />
+<meta property="og:description" content="PingCAP发布了TiDB的源码阅读系列文章，让我们可以比较系统的去学习了解TiDB的内部实现。最近的一篇《SQL 的一生》，从整体上讲解了" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/sql-parser/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-05-09T14:34:58+08:00" />
+<meta property="article:modified_time" content="2018-05-09T14:34:58+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="TiDB SQL Parser 的实现"/>
+<meta name="twitter:description" content="PingCAP发布了TiDB的源码阅读系列文章，让我们可以比较系统的去学习了解TiDB的内部实现。最近的一篇《SQL 的一生》，从整体上讲解了"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/sql-parser/" /><link rel="prev" href="https://mazhen.tech/cbo-guide/" /><link rel="next" href="https://mazhen.tech/cursor-summary/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "TiDB SQL Parser 的实现",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/sql-parser\/"
+        },"genre": "posts","keywords": "db","wordcount":  5027 ,
+        "url": "https:\/\/mazhen.tech\/sql-parser\/","datePublished": "2018-05-09T14:34:58+08:00","dateModified": "2018-05-09T14:34:58+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">TiDB SQL Parser 的实现</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-05-09">2018-05-09</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;5027 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;11 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#lex--yacc-介绍">Lex &amp; Yacc 介绍</a></li>
+    <li><a href="#goyacc-简介">goyacc 简介</a></li>
+    <li><a href="#tidb-sql-parser的实现">TiDB SQL Parser的实现</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>PingCAP发布了TiDB的<a href="https://pingcap.com/blog-cn/#%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB" target="_blank" rel="noopener noreffer ">源码阅读系列文章</a>，让我们可以比较系统的去学习了解TiDB的内部实现。最近的一篇<a href="https://pingcap.com/blog-cn/tidb-source-code-reading-3/" target="_blank" rel="noopener noreffer ">《SQL 的一生》</a>，从整体上讲解了一条SQL语句的处理流程，从网络上接收数据，MySQL协议解析和转换，SQL语法解析，查询计划的制定和优化，查询计划执行，到最后返回结果。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png" /></p>
+<p>其中，<code>SQL Parser</code>的功能是把SQL语句按照SQL语法规则进行解析，将文本转换成抽象语法树（<code>AST</code>），这部分功能需要些背景知识才能比较容易理解，我尝试做下相关知识的介绍，希望能对读懂这部分代码有点帮助。</p>
+<p>TiDB是使用<a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a>根据预定义的SQL语法规则文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>生成SQL语法解析器。我们可以在TiDB的<a href="https://github.com/pingcap/tidb/blob/50e98f427e7943396dbe38d23178b9f9dc5398b7/Makefile#L50" target="_blank" rel="noopener noreffer ">Makefile</a>文件中看到这个过程，先build <code>goyacc</code>工具，然后使用<code>goyacc</code>根据<code>parser.y</code>生成解析器<code>parser.go</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">goyacc:
+</span></span><span class="line"><span class="cl">	$(GOBUILD) -o bin/goyacc parser/goyacc/main.go
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">parser: goyacc
+</span></span><span class="line"><span class="cl">	bin/goyacc -o /dev/null parser/parser.y
+</span></span><span class="line"><span class="cl">	bin/goyacc -o parser/parser.go parser/parser.y 2&gt;&amp;1 ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a>是<a href="http://dinosaur.compilertools.net/" target="_blank" rel="noopener noreffer ">yacc</a>的Golang版，所以要想看懂语法规则定义文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>，了解解析器是如何工作的，先要对<a href="http://dinosaur.compilertools.net/" target="_blank" rel="noopener noreffer ">Lex &amp; Yacc</a>有些了解。</p>
+<h2 id="lex--yacc-介绍">Lex &amp; Yacc 介绍</h2>
+<p><a href="http://dinosaur.compilertools.net/" target="_blank" rel="noopener noreffer ">Lex &amp; Yacc</a> 是用来生成词法分析器和语法分析器的工具，它们的出现简化了编译器的编写。<code>Lex &amp; Yacc</code> 分别是由贝尔实验室的<a href="https://en.wikipedia.org/wiki/Mike_Lesk" target="_blank" rel="noopener noreffer ">Mike Lesk</a> 和 <a href="https://en.wikipedia.org/wiki/Stephen_C._Johnson" target="_blank" rel="noopener noreffer ">Stephen C. Johnson</a>在1975年发布。对于Java程序员来说，更熟悉的是<a href="http://www.antlr.org/" target="_blank" rel="noopener noreffer ">ANTLR</a>，<code>ANTLR 4</code> 提供了 <code>Listener</code>+<code>Visitor</code> 组合接口， 不需要在语法定义中嵌入<code>actions</code>，使应用代码和语法定义解耦。<code>Spark</code>的SQL解析就是使用了<code>ANTLR</code>。<code>Lex &amp; Yacc</code> 相对显得有些古老，实现的不是那么优雅，不过我们也不需要非常深入的学习，只要能看懂语法定义文件，了解生成的解析器是如何工作的就够了。我们可以从一个简单的例子开始：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png" /></p>
+<p>上图描述了使用<code>Lex &amp; Yacc</code>构建编译器的流程。<code>Lex</code>根据用户定义的<code>patterns</code>生成词法分析器。词法分析器读取源代码，根据<code>patterns</code>将源代码转换成<code>tokens</code>输出。<code>Yacc</code>根据用户定义的语法规则生成语法分析器。语法分析器以词法分析器输出的<code>tokens</code>作为输入，根据语法规则创建出语法树。最后对语法树遍历生成输出结果，结果可以是产生机器代码，或者是边遍历 <code>AST</code> 边解释执行。</p>
+<p>从上面的流程可以看出，用户需要分别为<code>Lex</code>提供<code>patterns</code>的定义，为 <code>Yacc</code> 提供语法规则文件，<code>Lex &amp; Yacc</code> 根据用户提供的输入文件，生成符合他们需求的词法分析器和语法分析器。这两种配置都是文本文件，并且结构相同：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">... definitions ...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">... rules ...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">... subroutines ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>文件内容由 <code>%%</code> 分割成三部分，我们重点关注中间规则定义部分。对于上面的例子，<code>Lex</code> 的输入文件如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">/* 变量 */
+</span></span><span class="line"><span class="cl">[a-z]    {
+</span></span><span class="line"><span class="cl">            yylval = *yytext - &#39;a&#39;;
+</span></span><span class="line"><span class="cl">            return VARIABLE;
+</span></span><span class="line"><span class="cl">         }   
+</span></span><span class="line"><span class="cl">/* 整数 */
+</span></span><span class="line"><span class="cl">[0-9]+   {
+</span></span><span class="line"><span class="cl">            yylval = atoi(yytext);
+</span></span><span class="line"><span class="cl">            return INTEGER;
+</span></span><span class="line"><span class="cl">         }
+</span></span><span class="line"><span class="cl">/* 操作符 */
+</span></span><span class="line"><span class="cl">[-+()=/*\n] { return *yytext; }
+</span></span><span class="line"><span class="cl">/* 跳过空格 */
+</span></span><span class="line"><span class="cl">[ \t]    ;
+</span></span><span class="line"><span class="cl">/* 其他格式报错 */
+</span></span><span class="line"><span class="cl">.        yyerror(&#34;invalid character&#34;);
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面只列出了规则定义部分，可以看出该规则使用正则表达式定义了变量、整数和操作符等几种<code>token</code>。例如整数<code>token</code>的定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[0-9]+  {
+</span></span><span class="line"><span class="cl">            yylval = atoi(yytext);
+</span></span><span class="line"><span class="cl">            return INTEGER; 
+</span></span><span class="line"><span class="cl">        }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当输入字符串匹配这个正则表达式，大括号内的动作会被执行：将整数值存储在变量 <code>yylval</code> 中，并返回 <code>token</code> 类型 <code>INTEGER</code> 给 <code>Yacc</code>。</p>
+<p>再来看看 <code>Yacc</code> 语法规则定义文件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">%token INTEGER VARIABLE
+</span></span><span class="line"><span class="cl">%left &#39;+&#39; &#39;-&#39;
+</span></span><span class="line"><span class="cl">%left &#39;*&#39; &#39;/&#39;
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">program:
+</span></span><span class="line"><span class="cl">        program statement &#39;\n&#39; 
+</span></span><span class="line"><span class="cl">        |
+</span></span><span class="line"><span class="cl">        ;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">statement:
+</span></span><span class="line"><span class="cl">        expr                    { printf(&#34;%d\n&#34;, $1); }
+</span></span><span class="line"><span class="cl">        | VARIABLE &#39;=&#39; expr     { sym[$1] = $3; }
+</span></span><span class="line"><span class="cl">        ;
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">expr:
+</span></span><span class="line"><span class="cl">        INTEGER
+</span></span><span class="line"><span class="cl">        | VARIABLE              { $$ = sym[$1]; }
+</span></span><span class="line"><span class="cl">        | expr &#39;+&#39; expr         { $$ = $1 + $3; }
+</span></span><span class="line"><span class="cl">        | expr &#39;-&#39; expr         { $$ = $1 - $3; }
+</span></span><span class="line"><span class="cl">        | expr &#39;*&#39; expr         { $$ = $1 * $3; }
+</span></span><span class="line"><span class="cl">        | expr &#39;/&#39; expr         { $$ = $1 / $3; }
+</span></span><span class="line"><span class="cl">        | &#39;(&#39; expr &#39;)&#39;          { $$ = $2; }
+</span></span><span class="line"><span class="cl">        ;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>第一部分定义了 <code>token</code> 类型和运算符的结合性。四种运算符都是左结合，同一行的运算符优先级相同，不同行的运算符，后定义的行具有更高的优先级。</p>
+<p>语法规则使用了<code>BNF</code>定义。<code>BNF</code> 可以用来表达上下文无关（<em>context-free</em>）语言，大部分的现代编程语言都可以使用 <code>BNF</code> 表示。上面的规则定义了三个<strong>产生式</strong>。<strong>产生式</strong>冒号左边的项（例如 <code>statement</code>）被称为<strong>非终结符</strong>， <code>INTEGER</code> 和 <code>VARIABLE</code> 被称为<strong>终结符</strong>,它们是由 <code>Lex</code> 返回的 <code>token</code> 。<strong>终结符</strong>只能出现在<strong>产生式</strong>的右侧。可以使用<strong>产生式</strong>定义的语法生成表达式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">expr -&gt; expr * expr
+</span></span><span class="line"><span class="cl">     -&gt; expr * INTEGER
+</span></span><span class="line"><span class="cl">     -&gt; expr + expr * INTEGER
+</span></span><span class="line"><span class="cl">     -&gt; expr + INTEGER * INTEGER
+</span></span><span class="line"><span class="cl">     -&gt; INTEGER + INTEGER * INTEGER
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>解析表达式是生成表达式的逆向操作，我们需要归约表达式到一个<strong>非终结符</strong>。<code>Yacc</code> 生成的语法分析器使用<strong>自底向上</strong>的归约（<em>shift-reduce</em>）方式进行语法解析，同时使用堆栈保存中间状态。还是看例子，表达式<code>x + y * z</code>的解析过程：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">1    . x + y * z
+</span></span><span class="line"><span class="cl">2    x . + y * z
+</span></span><span class="line"><span class="cl">3    expr . + y * z
+</span></span><span class="line"><span class="cl">4    expr + . y * z
+</span></span><span class="line"><span class="cl">5    expr + y . * z
+</span></span><span class="line"><span class="cl">6    expr + expr . * z
+</span></span><span class="line"><span class="cl">7    expr + expr * . z
+</span></span><span class="line"><span class="cl">8    expr + expr * z .
+</span></span><span class="line"><span class="cl">9    expr + expr * expr .
+</span></span><span class="line"><span class="cl">10   expr + expr .
+</span></span><span class="line"><span class="cl">11   expr .
+</span></span><span class="line"><span class="cl">12   statement .
+</span></span><span class="line"><span class="cl">13   program  .
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>点（<code>.</code>）表示当前的读取位置，随着 <code>.</code> 从左向右移动，我们将读取的<code>token</code>压入堆栈，当发现堆栈中的内容匹配了某个<strong>产生式</strong>的右侧，则将匹配的项从堆栈中弹出，将该<strong>产生式</strong>左侧的<strong>非终结符</strong>压入堆栈。这个过程持续进行，直到读取完所有的<code>tokens</code>，并且只有<strong>启始非终结符</strong>（本例为 <code>program</code>）保留在堆栈中。</p>
+<p>产生式右侧的大括号中定义了该规则关联的动作，例如：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">expr:  expr &#39;*&#39; expr         { $$ = $1 * $3; }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们将堆栈中匹配该<strong>产生式</strong>右侧的项替换为<strong>产生式</strong>左侧的<strong>非终结符</strong>，本例中我们弹出 <code>expr '*' expr</code>，然后把 <code>expr</code> 压回堆栈。 我们可以使用 <code>$position</code> 的形式访问堆栈中的项，<code>$1</code>引用的是第一项，<code>$2</code>引用的是第二项，以此类推。<code>$$</code> 代表的是归约操作执行后的堆栈顶。本例的动作是将三项从堆栈中弹出，两个表达式相加，结果再压回堆栈顶。</p>
+<p>上面例子中语法规则关联的动作，在完成语法解析的同时，也完成了表达式求值。一般我们希望语法解析的结果是一棵抽象语法树（<code>AST</code>），可以这么定义语法规则关联的动作：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">expr:
+</span></span><span class="line"><span class="cl">    INTEGER             { $$ = con($1); }
+</span></span><span class="line"><span class="cl">    | VARIABLE          { $$ = id($1); }
+</span></span><span class="line"><span class="cl">    | expr &#39;+&#39; expr     { $$ = opr(&#39;+&#39;, 2, $1, $3); }
+</span></span><span class="line"><span class="cl">    | expr &#39;-&#39; expr     { $$ = opr(&#39;-&#39;, 2, $1, $3); }
+</span></span><span class="line"><span class="cl">    | expr &#39;*&#39; expr     { $$ = opr(&#39;*&#39;, 2, $1, $3); } 
+</span></span><span class="line"><span class="cl">    | expr &#39;/&#39; expr     { $$ = opr(&#39;/&#39;, 2, $1, $3); }
+</span></span><span class="line"><span class="cl">    | &#39;(&#39; expr &#39;)&#39;      { $$ = $2; }
+</span></span><span class="line"><span class="cl">    ; 
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">nodeType *con(int value) {
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">nodeType *id(int i) {
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">nodeType *opr(int oper, int nops, ...) {
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">}    
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面是一个语法规则定义的片段，我们可以看到，每个规则关联的动作不再是求值，而是调用相应的函数，该函数会返回抽象语法树的节点类型 <code>nodeType</code>，然后将这个节点压回堆栈，解析完成时，我们就得到了一颗由 <code>nodeType</code> 构成的抽象语法树。对这个语法树进行遍历访问，可以生成机器代码，也可以解释执行。</p>
+<p>至此，我们大致了解了<code>Lex &amp; Yacc</code>的原理。其实还有非常多的细节，例如如何消除语法的歧义，但我们的目的是读懂TiDB的代码，掌握这些概念已经够用了。</p>
+<h2 id="goyacc-简介">goyacc 简介</h2>
+<p><a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a> 是golang版的 <code>Yacc</code>。和 <code>Yacc</code>的功能一样，<code>goyacc</code> 根据输入的语法规则文件，生成该语法规则的go语言版解析器。<code>goyacc</code> 生成的解析器 <code>yyParse</code> 要求词法分析器符合下面的接口：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yyLexer interface {
+</span></span><span class="line"><span class="cl">	Lex(lval *yySymType) int
+</span></span><span class="line"><span class="cl">	Error(e string)
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>或者</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yyLexerEx interface {
+</span></span><span class="line"><span class="cl">	yyLexer
+</span></span><span class="line"><span class="cl">	// Hook for recording a reduction.
+</span></span><span class="line"><span class="cl">	Reduced(rule, state int, lval *yySymType) (stop bool) // Client should copy *lval.
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>TiDB没有使用类似 <code>Lex</code> 的工具生成词法分析器，而是纯手工打造，词法分析器对应的代码是 <a href="https://github.com/pingcap/tidb/blob/master/parser/lexer.go" target="_blank" rel="noopener noreffer ">parser/lexer.go</a>， 它实现了 <code>goyacc</code> 要求的接口：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">// Scanner implements the yyLexer interface.
+</span></span><span class="line"><span class="cl">type Scanner struct {
+</span></span><span class="line"><span class="cl">	r   reader
+</span></span><span class="line"><span class="cl">	buf bytes.Buffer
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	errs         []error
+</span></span><span class="line"><span class="cl">	stmtStartPos int
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	// For scanning such kind of comment: /*! MySQL-specific code */ or /*+ optimizer hint */
+</span></span><span class="line"><span class="cl">	specialComment specialCommentScanner
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	sqlMode mysql.SQLMode
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">// Lex returns a token and store the token value in v.
+</span></span><span class="line"><span class="cl">// Scanner satisfies yyLexer interface.
+</span></span><span class="line"><span class="cl">// 0 and invalid are special token id this function would return:
+</span></span><span class="line"><span class="cl">// return 0 tells parser that scanner meets EOF,
+</span></span><span class="line"><span class="cl">// return invalid tells parser that scanner meets illegal character.
+</span></span><span class="line"><span class="cl">func (s *Scanner) Lex(v *yySymType) int {
+</span></span><span class="line"><span class="cl">	tok, pos, lit := s.scan()
+</span></span><span class="line"><span class="cl">	v.offset = pos.Offset
+</span></span><span class="line"><span class="cl">	v.ident = lit
+</span></span><span class="line"><span class="cl">	...
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">// Errors returns the errors during a scan.
+</span></span><span class="line"><span class="cl">func (s *Scanner) Errors() []error {
+</span></span><span class="line"><span class="cl">	return s.errs
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>另外<code>lexer</code> 使用了<code>字典树</code>技术进行 <code>token</code> 识别，具体的实现代码在<a href="https://github.com/pingcap/tidb/blob/master/parser/misc.go" target="_blank" rel="noopener noreffer ">parser/misc.go</a></p>
+<h2 id="tidb-sql-parser的实现">TiDB SQL Parser的实现</h2>
+<p>终于到了正题。有了上面的背景知识，对TiDB 的 <code>SQL Parser</code> 模块会相对容易理解一些。先看SQL语法规则文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>，<code>goyacc</code> 就是根据这个文件生成SQL语法解析器的。</p>
+<p><code>parser.y</code> 有6500多行，第一次打开可能会被吓到，其实这个文件仍然符合我们上面介绍过的结构：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">... definitions ...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">... rules ...
+</span></span><span class="line"><span class="cl">%%
+</span></span><span class="line"><span class="cl">... subroutines ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>parser.y</code> 第三部分 <code>subroutines</code> 是空白没有内容的， 所以我们只需要关注第一部分 <code>definitions</code> 和第二部分 <code>rules</code>。</p>
+<p>第一部分主要是定义<code>token</code>的类型、优先级、结合性等。注意 <code>union</code> 这个联合体结构体：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">%union {
+</span></span><span class="line"><span class="cl">	offset int // offset
+</span></span><span class="line"><span class="cl">	item interface{}
+</span></span><span class="line"><span class="cl">	ident string
+</span></span><span class="line"><span class="cl">	expr ast.ExprNode
+</span></span><span class="line"><span class="cl">	statement ast.StmtNode
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>该联合体结构体定义了在语法解析过程中被压入堆栈的<strong>项</strong>的属性和类型。</p>
+<p>压入堆栈的<strong>项</strong>可能是<code>终结符</code>，也就是 <code>token</code>，它的类型可以是<code>item</code> 或 <code>ident</code>；</p>
+<p>这个<strong>项</strong>也可能是<code>非终结符</code>，即产生式的左侧，它的类型可以是 <code>expr</code> 、 <code>statement</code> 、 <code>item</code> 或 <code>ident</code>。</p>
+<p><code>goyacc</code> 根据这个 <code>union</code> 在解析器里生成对应的 <code>struct</code> 是：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yySymType struct {
+</span></span><span class="line"><span class="cl">	yys       int
+</span></span><span class="line"><span class="cl">	offset    int // offset
+</span></span><span class="line"><span class="cl">	item      interface{}
+</span></span><span class="line"><span class="cl">	ident     string
+</span></span><span class="line"><span class="cl">	expr      ast.ExprNode
+</span></span><span class="line"><span class="cl">	statement ast.StmtNode
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在语法解析过程中，<code>非终结符</code>会被构造成抽象语法树（<code>AST</code>）的节点 <a href="https://github.com/pingcap/tidb/blob/73900c4890dc9708fe4de39021001ca554bc8374/ast/ast.go#L60" target="_blank" rel="noopener noreffer ">ast.ExprNode</a> 或 <a href="https://github.com/pingcap/tidb/blob/73900c4890dc9708fe4de39021001ca554bc8374/ast/ast.go#L94" target="_blank" rel="noopener noreffer ">ast.StmtNode</a>。抽象语法树相关的数据结构都定义在 <a href="https://github.com/pingcap/tidb/tree/master/ast" target="_blank" rel="noopener noreffer ">ast</a> 包中，它们大都实现了 <a href="https://github.com/pingcap/tidb/blob/73900c4890dc9708fe4de39021001ca554bc8374/ast/ast.go#L29" target="_blank" rel="noopener noreffer ">ast.Node</a> 接口：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// Node is the basic element of the AST.
+</span></span><span class="line"><span class="cl">// Interfaces embed Node should have &#39;Node&#39; name suffix.
+</span></span><span class="line"><span class="cl">type Node interface {
+</span></span><span class="line"><span class="cl">	Accept(v Visitor) (node Node, ok bool)
+</span></span><span class="line"><span class="cl">	Text() string
+</span></span><span class="line"><span class="cl">	SetText(text string)
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个接口有一个 <code>Accept</code> 方法，接受 <code>Visitor</code> 参数，后续对 <code>AST</code> 的处理，主要依赖这个 <code>Accept</code> 方法，以 <code>Visitor</code> 模式遍历所有的节点以及对 <code>AST</code> 做结构转换。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// Visitor visits a Node.
+</span></span><span class="line"><span class="cl">type Visitor interface {
+</span></span><span class="line"><span class="cl">	Enter(n Node) (node Node, skipChildren bool)
+</span></span><span class="line"><span class="cl">	Leave(n Node) (node Node, ok bool)
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>例如 <a href="https://github.com/pingcap/tidb/blob/master/plan/preprocess.go" target="_blank" rel="noopener noreffer ">plan.preprocess</a> 是对 <code>AST</code>  做预处理，包括合法性检查以及名字绑定。</p>
+<p><code>union</code> 后面是对 <code>token</code> 和 <code>非终结符</code> 按照类型分别定义：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* 这部分的token是 ident类型 */
+</span></span><span class="line"><span class="cl">%token	&lt;ident&gt;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">	add			&#34;ADD&#34;
+</span></span><span class="line"><span class="cl">	all 			&#34;ALL&#34;
+</span></span><span class="line"><span class="cl">	alter			&#34;ALTER&#34;
+</span></span><span class="line"><span class="cl">	analyze			&#34;ANALYZE&#34;
+</span></span><span class="line"><span class="cl">	and			&#34;AND&#34;
+</span></span><span class="line"><span class="cl">	as			&#34;AS&#34;
+</span></span><span class="line"><span class="cl">	asc			&#34;ASC&#34;
+</span></span><span class="line"><span class="cl">	between			&#34;BETWEEN&#34;
+</span></span><span class="line"><span class="cl">	bigIntType		&#34;BIGINT&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">/* 这部分的token是 item 类型 */   
+</span></span><span class="line"><span class="cl">%token	&lt;item&gt;
+</span></span><span class="line"><span class="cl">    /*yy:token &#34;1.%d&#34;   */	floatLit        &#34;floating-point literal&#34;
+</span></span><span class="line"><span class="cl">	/*yy:token &#34;1.%d&#34;   */	decLit          &#34;decimal literal&#34;
+</span></span><span class="line"><span class="cl">	/*yy:token &#34;%d&#34;     */	intLit          &#34;integer literal&#34;
+</span></span><span class="line"><span class="cl">	/*yy:token &#34;%x&#34;     */	hexLit          &#34;hexadecimal literal&#34;
+</span></span><span class="line"><span class="cl">	/*yy:token &#34;%b&#34;     */	bitLit          &#34;bit literal&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	andnot		&#34;&amp;^&#34;
+</span></span><span class="line"><span class="cl">	assignmentEq	&#34;:=&#34;
+</span></span><span class="line"><span class="cl">	eq		&#34;=&#34;
+</span></span><span class="line"><span class="cl">	ge		&#34;&gt;=&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">/* 非终结符按照类型分别定义 */
+</span></span><span class="line"><span class="cl">%type	&lt;expr&gt;
+</span></span><span class="line"><span class="cl">    Expression			&#34;expression&#34;
+</span></span><span class="line"><span class="cl">	BoolPri				&#34;boolean primary expression&#34;
+</span></span><span class="line"><span class="cl">	ExprOrDefault			&#34;expression or default&#34;
+</span></span><span class="line"><span class="cl">	PredicateExpr			&#34;Predicate expression factor&#34;
+</span></span><span class="line"><span class="cl">	SetExpr				&#34;Set variable statement value&#39;s expression&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">%type	&lt;statement&gt;
+</span></span><span class="line"><span class="cl">	AdminStmt			&#34;Check table statement or show ddl statement&#34;
+</span></span><span class="line"><span class="cl">	AlterTableStmt			&#34;Alter table statement&#34;
+</span></span><span class="line"><span class="cl">	AlterUserStmt			&#34;Alter user statement&#34;
+</span></span><span class="line"><span class="cl">	AnalyzeTableStmt		&#34;Analyze table statement&#34;
+</span></span><span class="line"><span class="cl">	BeginTransactionStmt		&#34;BEGIN TRANSACTION statement&#34;
+</span></span><span class="line"><span class="cl">	BinlogStmt			&#34;Binlog base64 statement&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl">%type   &lt;item&gt;
+</span></span><span class="line"><span class="cl">	AlterTableOptionListOpt		&#34;alter table option list opt&#34;
+</span></span><span class="line"><span class="cl">	AlterTableSpec			&#34;Alter table specification&#34;
+</span></span><span class="line"><span class="cl">	AlterTableSpecList		&#34;Alter table specification list&#34;
+</span></span><span class="line"><span class="cl">	AnyOrAll			&#34;Any or All for subquery&#34;
+</span></span><span class="line"><span class="cl">	Assignment			&#34;assignment&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">%type	&lt;ident&gt;
+</span></span><span class="line"><span class="cl">	KeyOrIndex		&#34;{KEY|INDEX}&#34;
+</span></span><span class="line"><span class="cl">	ColumnKeywordOpt	&#34;Column keyword or empty&#34;
+</span></span><span class="line"><span class="cl">	PrimaryOpt		&#34;Optional primary keyword&#34;
+</span></span><span class="line"><span class="cl">	NowSym			&#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP&#34;
+</span></span><span class="line"><span class="cl">	NowSymFunc		&#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP/NOW&#34;
+</span></span><span class="line"><span class="cl">    ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>第一部分的最后是对优先级和结合性的定义：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">%precedence sqlCache sqlNoCache
+</span></span><span class="line"><span class="cl">%precedence lowerThanIntervalKeyword
+</span></span><span class="line"><span class="cl">%precedence interval
+</span></span><span class="line"><span class="cl">%precedence lowerThanStringLitToken
+</span></span><span class="line"><span class="cl">%precedence stringLit
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">%right   assignmentEq
+</span></span><span class="line"><span class="cl">%left 	pipes or pipesAsOr
+</span></span><span class="line"><span class="cl">%left 	xor
+</span></span><span class="line"><span class="cl">%left 	andand and
+</span></span><span class="line"><span class="cl">%left 	between
+</span></span><span class="line"><span class="cl">...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>parser.y</code>文件的第二部分是<code>SQL</code>语法的产生式和每个规则对应的 <code>aciton</code> 。SQL语法非常复杂，<code>parser.y</code> 的大部分内容都是产生式的定义。</p>
+<p><code>SQL</code> 语法可以参照MySQL参考手册的<a href="https://dev.mysql.com/doc/refman/5.7/en/sql-syntax.html" target="_blank" rel="noopener noreffer ">SQL Statement Syntax</a> 部分，例如 <a href="https://dev.mysql.com/doc/refman/5.7/en/select.html" target="_blank" rel="noopener noreffer ">SELECT</a> 语法的定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">SELECT
+</span></span><span class="line"><span class="cl">    [ALL | DISTINCT | DISTINCTROW ]
+</span></span><span class="line"><span class="cl">      [HIGH_PRIORITY]
+</span></span><span class="line"><span class="cl">      [STRAIGHT_JOIN]
+</span></span><span class="line"><span class="cl">      [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
+</span></span><span class="line"><span class="cl">      [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
+</span></span><span class="line"><span class="cl">    select_expr [, select_expr ...]
+</span></span><span class="line"><span class="cl">    [FROM table_references
+</span></span><span class="line"><span class="cl">      [PARTITION partition_list]
+</span></span><span class="line"><span class="cl">    [WHERE where_condition]
+</span></span><span class="line"><span class="cl">    [GROUP BY {col_name | expr | position}
+</span></span><span class="line"><span class="cl">      [ASC | DESC], ... [WITH ROLLUP]]
+</span></span><span class="line"><span class="cl">    [HAVING where_condition]
+</span></span><span class="line"><span class="cl">    [ORDER BY {col_name | expr | position}
+</span></span><span class="line"><span class="cl">      [ASC | DESC], ...]
+</span></span><span class="line"><span class="cl">    [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+</span></span><span class="line"><span class="cl">    [PROCEDURE procedure_name(argument_list)]
+</span></span><span class="line"><span class="cl">    [INTO OUTFILE &#39;file_name&#39;
+</span></span><span class="line"><span class="cl">        [CHARACTER SET charset_name]
+</span></span><span class="line"><span class="cl">        export_options
+</span></span><span class="line"><span class="cl">      | INTO DUMPFILE &#39;file_name&#39;
+</span></span><span class="line"><span class="cl">      | INTO var_name [, var_name]]
+</span></span><span class="line"><span class="cl">    [FOR UPDATE | LOCK IN SHARE MODE]]
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们可以在 <code>parser.y</code> 中找到 <code>SELECT</code> 语句的产生式：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">SelectStmt:
+</span></span><span class="line"><span class="cl">	&#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList OrderByOptional SelectStmtLimit SelectLockOpt
+</span></span><span class="line"><span class="cl">    { ... }
+</span></span><span class="line"><span class="cl">|   &#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList FromDual WhereClauseOptional SelectStmtLimit SelectLockOpt
+</span></span><span class="line"><span class="cl">    { ... }  
+</span></span><span class="line"><span class="cl">|   &#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList &#34;FROM&#34;
+</span></span><span class="line"><span class="cl">	TableRefsClause WhereClauseOptional SelectStmtGroup HavingClause OrderByOptional
+</span></span><span class="line"><span class="cl">	SelectStmtLimit SelectLockOpt
+</span></span><span class="line"><span class="cl">    { ... } 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>产生式 <code>SelectStmt</code> 和 <code>SELECT</code> 语法是对应的。</p>
+<p>我省略了大括号中的 <code>action</code> ，这部分代码会构建出 <code>AST</code> 的 <a href="https://github.com/pingcap/tidb/blob/3ac2b34a3491e809a96db358ee2ce8d11a66abb6/ast/dml.go#L451" target="_blank" rel="noopener noreffer ">ast.SelectStmt</a> 节点：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type SelectStmt struct {
+</span></span><span class="line"><span class="cl">	dmlNode
+</span></span><span class="line"><span class="cl">	resultSetNode
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	// SelectStmtOpts wraps around select hints and switches.
+</span></span><span class="line"><span class="cl">	*SelectStmtOpts
+</span></span><span class="line"><span class="cl">	// Distinct represents whether the select has distinct option.
+</span></span><span class="line"><span class="cl">	Distinct bool
+</span></span><span class="line"><span class="cl">	// From is the from clause of the query.
+</span></span><span class="line"><span class="cl">	From *TableRefsClause
+</span></span><span class="line"><span class="cl">	// Where is the where clause in select statement.
+</span></span><span class="line"><span class="cl">	Where ExprNode
+</span></span><span class="line"><span class="cl">	// Fields is the select expression list.
+</span></span><span class="line"><span class="cl">	Fields *FieldList
+</span></span><span class="line"><span class="cl">	// GroupBy is the group by expression list.
+</span></span><span class="line"><span class="cl">	GroupBy *GroupByClause
+</span></span><span class="line"><span class="cl">	// Having is the having condition.
+</span></span><span class="line"><span class="cl">	Having *HavingClause
+</span></span><span class="line"><span class="cl">	// OrderBy is the ordering expression list.
+</span></span><span class="line"><span class="cl">	OrderBy *OrderByClause
+</span></span><span class="line"><span class="cl">	// Limit is the limit clause.
+</span></span><span class="line"><span class="cl">	Limit *Limit
+</span></span><span class="line"><span class="cl">	// LockTp is the lock type
+</span></span><span class="line"><span class="cl">	LockTp SelectLockType
+</span></span><span class="line"><span class="cl">	// TableHints represents the level Optimizer Hint
+</span></span><span class="line"><span class="cl">	TableHints []*TableOptimizerHint
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以看出，<code>ast.SelectStmt</code> 结构体内包含的内容和 <code>SELECT</code>  语法也是一一对应的。</p>
+<p>其他的产生式也都是根据对应的 <code>SQL</code> 语法来编写的。从 <code>parser.y</code> 的注释看到，这个文件最初是用<a href="https://github.com/cznic/ebnf2y" target="_blank" rel="noopener noreffer ">工具</a>从 <code>BNF</code> 转化生成的，从头手写这个规则文件，工作量会非常大。</p>
+<p>完成了语法规则文件 <code>parser.y</code> 的定义，就可以使用 <code>goyacc</code> 生成语法解析器：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">bin/goyacc -o parser/parser.go parser/parser.y 2&gt;&amp;1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>TiDB对 <code>lexer</code> 和 <code>parser.go</code> 进行了封装，对外提供 <a href="https://github.com/pingcap/tidb/blob/master/parser/yy_parser.go" target="_blank" rel="noopener noreffer ">parser.yy_parser</a>  进行SQL语句的解析：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// Parse parses a query string to raw ast.StmtNode.
+</span></span><span class="line"><span class="cl">func (parser *Parser) Parse(sql, charset, collation string) ([]ast.StmtNode, error) {
+</span></span><span class="line"><span class="cl">    ...
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>最后，我写了一个简单的例子，使用TiDB的 <code>SQL Parser</code> 进行SQL语法解析，构建出 <code>AST</code>，然后利用 <code>visitor</code> 遍历 <code>AST</code> ：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;github.com/pingcap/tidb/parser&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;github.com/pingcap/tidb/ast&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">visitor</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="o">*</span><span class="nx">visitor</span><span class="p">)</span> <span class="nf">Enter</span><span class="p">(</span><span class="nx">in</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">)</span> <span class="p">(</span><span class="nx">out</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">skipChildren</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%T\n&#34;</span><span class="p">,</span> <span class="nx">in</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="o">*</span><span class="nx">visitor</span><span class="p">)</span> <span class="nf">Leave</span><span class="p">(</span><span class="nx">in</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">)</span> <span class="p">(</span><span class="nx">out</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">ok</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">sql</span> <span class="o">:=</span> <span class="s">&#34;SELECT /*+ TIDB_SMJ(employees) */ emp_no, first_name, last_name &#34;</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;FROM employees USE INDEX (last_name) &#34;</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;where last_name=&#39;Aamodt&#39; and gender=&#39;F&#39; and birth_date &gt; &#39;1960-01-01&#39;&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">sqlParser</span> <span class="o">:=</span> <span class="nx">parser</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">stmtNodes</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sqlParser</span><span class="p">.</span><span class="nf">Parse</span><span class="p">(</span><span class="nx">sql</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;parse error:\n%v\n%s&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">sql</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">stmtNode</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">stmtNodes</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">v</span> <span class="o">:=</span> <span class="nx">visitor</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">stmtNode</span><span class="p">.</span><span class="nf">Accept</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我实现的 <code>visitor</code> 什么也没干，只是输出了节点的类型。 这段代码的运行结果如下，依次输出遍历过程中遇到的节点类型：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">*ast.SelectStmt
+</span></span><span class="line"><span class="cl">*ast.TableOptimizerHint
+</span></span><span class="line"><span class="cl">*ast.TableRefsClause
+</span></span><span class="line"><span class="cl">*ast.Join
+</span></span><span class="line"><span class="cl">*ast.TableSource
+</span></span><span class="line"><span class="cl">*ast.TableName
+</span></span><span class="line"><span class="cl">*ast.BinaryOperationExpr
+</span></span><span class="line"><span class="cl">*ast.BinaryOperationExpr
+</span></span><span class="line"><span class="cl">*ast.BinaryOperationExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span><span class="line"><span class="cl">*ast.ValueExpr
+</span></span><span class="line"><span class="cl">*ast.BinaryOperationExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span><span class="line"><span class="cl">*ast.ValueExpr
+</span></span><span class="line"><span class="cl">*ast.BinaryOperationExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span><span class="line"><span class="cl">*ast.ValueExpr
+</span></span><span class="line"><span class="cl">*ast.FieldList
+</span></span><span class="line"><span class="cl">*ast.SelectField
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span><span class="line"><span class="cl">*ast.SelectField
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span><span class="line"><span class="cl">*ast.SelectField
+</span></span><span class="line"><span class="cl">*ast.ColumnNameExpr
+</span></span><span class="line"><span class="cl">*ast.ColumnName
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>了解了TiDB <code>SQL Parser</code> 的实现，我们就有可能实现TiDB当前不支持的语法，例如添加内置函数，也为我们学习查询计划以及优化打下了基础。希望这篇文章对你能有所帮助。</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-05-09</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/sql-parser/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/sql-parser/" data-title="TiDB SQL Parser 的实现" data-via="mazhen" data-hashtags="db"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/sql-parser/" data-hashtag="db"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/sql-parser/" data-title="TiDB SQL Parser 的实现"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/sql-parser/" data-title="TiDB SQL Parser 的实现"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/db/">db</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/cbo-guide/" class="prev" rel="prev" title="基于代价优化（CBO）实现代码导读"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>基于代价优化（CBO）实现代码导读</a>
+            <a href="/cursor-summary/" class="next" rel="next" title="Cursor功能实现总结">Cursor功能实现总结<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script></body>
+</html>
