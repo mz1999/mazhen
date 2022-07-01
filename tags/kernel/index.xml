@@ -1,0 +1,24 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>kernel - Tag - mazhen.tech</title>
+        <link>https://mazhen.tech/tags/kernel/</link>
+        <description>kernel - Tag - mazhen.tech</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/kernel/" rel="self" type="application/rss+xml" /><item>
+    <title>Linux TCP队列相关参数的总结</title>
+    <link>https://mazhen.tech/linux-tcp-queue/</link>
+    <pubDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/linux-tcp-queue/</guid>
+    <description><![CDATA[在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪]]></description>
+</item>
+<item>
+    <title>Linux内核参数的配置方法</title>
+    <link>https://mazhen.tech/linux-kernel-parameter/</link>
+    <pubDate>Fri, 30 May 2014 20:21:08 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/linux-kernel-parameter/</guid>
+    <description><![CDATA[/proc是一个伪文件系统，可以像访问普通文件系统一样访问系统内部的数据结构，获取当前运行的进程、统计和硬件等各种信息。例如可以使用cat /]]></description>
+</item>
+</channel>
+</rss>

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <title>为Wireshark编写HSF2协议解析插件 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="为Wireshark编写HSF2协议解析插件" />
-<meta property="og:description" content="为Wireshark编写HSF2协议解析插件 Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很" />
+<meta property="og:description" content="Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很好，对于自定义的应用层网络协议，你可以使用c" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://mazhen.tech/hsf/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2014-12-21T14:15:17+08:00" />
@@ -15,7 +15,7 @@
 <meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
 
 <meta name="twitter:title" content="为Wireshark编写HSF2协议解析插件"/>
-<meta name="twitter:description" content="为Wireshark编写HSF2协议解析插件 Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很"/>
+<meta name="twitter:description" content="Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很好，对于自定义的应用层网络协议，你可以使用c"/>
 <meta name="application-name" content="mazhen.tech">
 <meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,7 +30,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/mazhen.tech\/hsf\/"
-        },"genre": "posts","keywords": "java, networking","wordcount":  2011 ,
+        },"genre": "posts","keywords": "java, networking","wordcount":  1989 ,
         "url": "https:\/\/mazhen.tech\/hsf\/","datePublished": "2014-12-21T14:15:17+08:00","dateModified": "2014-12-21T14:15:17+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -105,16 +105,15 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">为Wireshark编写HSF2协议解析插件</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2014-12-21">2014-12-21</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;2011 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2014-12-21">2014-12-21</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1989 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="true">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><h1 id="为wireshark编写hsf2协议解析插件">为Wireshark编写HSF2协议解析插件</h1>
-<p><code>Wireshark</code>是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很好，对于自定义的应用层网络协议，你可以使用<code>c</code>或者<code>lua</code>编写协议解析插件，这样你就可以在<code>Wireshark</code>中观察到协议的内容而不是二进制流，为排查问题带来一定的便利性。</p>
+            </div><div class="content" id="content"><p><code>Wireshark</code>是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很好，对于自定义的应用层网络协议，你可以使用<code>c</code>或者<code>lua</code>编写协议解析插件，这样你就可以在<code>Wireshark</code>中观察到协议的内容而不是二进制流，为排查问题带来一定的便利性。</p>
 <p>最近在排查一个<code>HSF</code>超时的问题，顺便花了些时间为<code>Wireshark</code>写了一个<code>HSF2</code>协议解析插件，目前支持<code>HSF2</code>的<code>request</code>、<code>response</code>和<code>heart beat</code>协议，支持将多个<code>packet</code>还原为上层<code>PDU</code>。暂不支持HSF原先的TB Remoting协议。先看效果。</p>
 <p>首先在Packet List区域已经能识别HSF2协议：</p>
 <p>HSF的请求和响应</p>

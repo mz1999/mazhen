@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <title>TiDB Insert 执行流程图 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="TiDB Insert 执行流程图" />
-<meta property="og:description" content="TiDB Insert 执行流程图 TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理" />
+<meta property="og:description" content="TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理解对这幅图扩展" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://mazhen.tech/insert-overview/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-05-15T14:38:05+08:00" />
@@ -15,7 +15,7 @@
 <meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
 
 <meta name="twitter:title" content="TiDB Insert 执行流程图"/>
-<meta name="twitter:description" content="TiDB Insert 执行流程图 TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理"/>
+<meta name="twitter:description" content="TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理解对这幅图扩展"/>
 <meta name="application-name" content="mazhen.tech">
 <meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,7 +30,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/mazhen.tech\/insert-overview\/"
-        },"genre": "posts","keywords": "db","wordcount":  130 ,
+        },"genre": "posts","keywords": "db","wordcount":  123 ,
         "url": "https:\/\/mazhen.tech\/insert-overview\/","datePublished": "2022-05-15T14:38:05+08:00","dateModified": "2022-05-15T14:38:05+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -105,7 +105,7 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">TiDB Insert 执行流程图</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-05-15">2022-05-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;130 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2022-05-15">2022-05-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;123 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;One minute&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="true">
                 <div class="details-summary toc-title">
@@ -113,8 +113,7 @@
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><h1 id="tidb-insert-执行流程图">TiDB Insert 执行流程图</h1>
-<p>TiDB源码解读系列的<a href="https://pingcap.com/blog-cn/tidb-source-code-reading-4/" target="_blank" rel="noopener noreffer ">《Insert语句概览》</a>讲解了<code>Insert</code>执行的整体流程，并在最后用一幅图描述了整个流程：</p>
+            </div><div class="content" id="content"><p>TiDB源码解读系列的<a href="https://pingcap.com/blog-cn/tidb-source-code-reading-4/" target="_blank" rel="noopener noreffer ">《Insert语句概览》</a>讲解了<code>Insert</code>执行的整体流程，并在最后用一幅图描述了整个流程：</p>
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"

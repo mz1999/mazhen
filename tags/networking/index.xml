@@ -10,7 +10,7 @@
     <pubDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</pubDate>
     <author>mazhen</author>
     <guid>https://mazhen.tech/hsf/</guid>
-    <description><![CDATA[为Wireshark编写HSF2协议解析插件 Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很]]></description>
+    <description><![CDATA[Wireshark是排查网络问题最常用的工具，它已经内置支持了上百种通用协议，同时它的扩展性也很好，对于自定义的应用层网络协议，你可以使用c]]></description>
 </item>
 <item>
     <title>从开发角度看DNS</title>

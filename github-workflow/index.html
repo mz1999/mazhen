@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <title>Git Feature Branch Workflow - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Git Feature Branch Workflow" />
-<meta property="og:description" content="Git Feature Branch Workflow Zion项目我们采用Feature Branch Workflow，即每个特性在branch中开发，master始终保持稳定。特性开发完成，需提交" />
+<meta property="og:description" content="Zion项目我们采用Feature Branch Workflow，即每个特性在branch中开发，master始终保持稳定。特性开发完成，需提交pull" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://mazhen.tech/github-workflow/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
 
@@ -15,7 +15,7 @@
 <meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
 
 <meta name="twitter:title" content="Git Feature Branch Workflow"/>
-<meta name="twitter:description" content="Git Feature Branch Workflow Zion项目我们采用Feature Branch Workflow，即每个特性在branch中开发，master始终保持稳定。特性开发完成，需提交"/>
+<meta name="twitter:description" content="Zion项目我们采用Feature Branch Workflow，即每个特性在branch中开发，master始终保持稳定。特性开发完成，需提交pull"/>
 <meta name="application-name" content="mazhen.tech">
 <meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -30,7 +30,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/mazhen.tech\/github-workflow\/"
-        },"genre": "posts","keywords": "git","wordcount":  1055 ,
+        },"genre": "posts","keywords": "git","wordcount":  1051 ,
         "url": "https:\/\/mazhen.tech\/github-workflow\/","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
@@ -105,7 +105,7 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Git Feature Branch Workflow</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="0001-01-01">0001-01-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1055 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="0001-01-01">0001-01-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1051 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="true">
                 <div class="details-summary toc-title">
@@ -118,8 +118,7 @@
     <li><a href="#冲突处理">冲突处理</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h1 id="git-feature-branch-workflow">Git Feature Branch Workflow</h1>
-<p>Zion项目我们采用<a href="https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow" target="_blank" rel="noopener noreffer ">Feature Branch Workflow</a>，即每个特性在<code>branch</code>中开发，<code>master</code>始终保持稳定。特性开发完成，需提交<code>pull request</code>，接受其他成员的code review，同时可以在<code>PR</code>中围绕该特性进行讨论，<code>PR</code>记录了开发过程的细节。</p>
+            </div><div class="content" id="content"><p>Zion项目我们采用<a href="https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow" target="_blank" rel="noopener noreffer ">Feature Branch Workflow</a>，即每个特性在<code>branch</code>中开发，<code>master</code>始终保持稳定。特性开发完成，需提交<code>pull request</code>，接受其他成员的code review，同时可以在<code>PR</code>中围绕该特性进行讨论，<code>PR</code>记录了开发过程的细节。</p>
 <p>由于是内部项目，我们没有使用<code>fork</code>机制，代码都维护在Github上的一个仓库：<a href="https://github.com/apusic/zion" target="_blank" rel="noopener noreffer ">apusic/zion</a>。在看具体的流程前，先有一个全局视图：</p>
 <p><img
         class="lazyload"

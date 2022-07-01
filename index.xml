@@ -12,7 +12,7 @@
     <pubDate>Sun, 15 May 2022 14:38:05 &#43;0800</pubDate>
     <author>mazhen</author>
     <guid>https://mazhen.tech/insert-overview/</guid>
-    <description><![CDATA[TiDB Insert 执行流程图 TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理]]></description>
+    <description><![CDATA[TiDB源码解读系列的《Insert语句概览》讲解了Insert执行的整体流程，并在最后用一幅图描述了整个流程： 我按照自己的理解对这幅图扩展]]></description>
 </item>
 <item>
     <title>关系数据库查询处理基础知识扫盲</title>
