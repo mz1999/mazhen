@@ -4,10 +4,50 @@
         <link>https://mazhen.tech/categories/tech/</link>
         <description>tech - Category - mazhen.tech</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Mon, 30 Jun 2014 20:21:08 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/categories/tech/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Wed, 10 Sep 2014 11:04:27 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/categories/tech/" rel="self" type="application/rss+xml" /><item>
+    <title>从开发角度看DNS</title>
+    <link>https://mazhen.tech/dns/</link>
+    <pubDate>Wed, 10 Sep 2014 11:04:27 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/dns/</guid>
+    <description><![CDATA[DNS（Domain Name System）简单说就是一个名称到IP地址的映射，使用容易记住的域名代替IP地址。基本原理就不讲了，网上的文章很多。 了]]></description>
+</item>
+<item>
+    <title>Linux TCP队列相关参数的总结</title>
+    <link>https://mazhen.tech/linux-tcp-queue/</link>
+    <pubDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/linux-tcp-queue/</guid>
+    <description><![CDATA[在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪]]></description>
+</item>
+<item>
+    <title>TCP `SO_LINGER` 选项对Socket.close的影响</title>
+    <link>https://mazhen.tech/so-linger/</link>
+    <pubDate>Sun, 10 Aug 2014 11:08:57 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/so-linger/</guid>
+    <description><![CDATA[Java中通过Socket.setSoLinger设置SO_LINGER选项，有三种组合形式： Socket.setSoLinger(false, linger) 设置为false，这时linger值被忽略]]></description>
+</item>
+<item>
+    <title>应用关闭后占用端口时间过长的问题</title>
+    <link>https://mazhen.tech/time-wait/</link>
+    <pubDate>Tue, 01 Jul 2014 11:00:10 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/time-wait/</guid>
+    <description><![CDATA[早上毕玄转给我一个问题，vsearch在上海机房部署的应用，在应用关闭后，端口释放的时间要比杭州机房的时间长。 TCP的基本知识，主动关闭连接]]></description>
+</item>
+<item>
+    <title>使用USE Method分析系统性能问题</title>
+    <link>https://mazhen.tech/use-method/</link>
+    <pubDate>Sat, 07 Jun 2014 10:56:00 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/use-method/</guid>
+    <description><![CDATA[遇到性能问题怎么分析定位？这个问题太难回答了，各种底层环境、依赖系统、业务场景，怎么可能有统一的答案。于是产生了各种分析性能问题的“流派”。]]></description>
+</item>
+<item>
     <title>Linux内核参数的配置方法</title>
     <link>https://mazhen.tech/linux-kernel-parameter/</link>
-    <pubDate>Mon, 30 Jun 2014 20:21:08 &#43;0800</pubDate>
+    <pubDate>Fri, 30 May 2014 20:21:08 &#43;0800</pubDate>
     <author>mazhen</author>
     <guid>https://mazhen.tech/linux-kernel-parameter/</guid>
     <description><![CDATA[/proc是一个伪文件系统，可以像访问普通文件系统一样访问系统内部的数据结构，获取当前运行的进程、统计和硬件等各种信息。例如可以使用cat /]]></description>

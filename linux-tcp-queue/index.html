@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Linux TCP队列相关参数的总结 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Linux TCP队列相关参数的总结" />
+<meta property="og:description" content="在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/linux-tcp-queue/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2014-08-16T11:11:24+08:00" />
+<meta property="article:modified_time" content="2014-08-16T11:11:24+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="Linux TCP队列相关参数的总结"/>
+<meta name="twitter:description" content="在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/linux-tcp-queue/" /><link rel="prev" href="https://mazhen.tech/so-linger/" /><link rel="next" href="https://mazhen.tech/dns/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Linux TCP队列相关参数的总结",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/linux-tcp-queue\/"
+        },"genre": "posts","keywords": "linux, networking, performance","wordcount":  5506 ,
+        "url": "https:\/\/mazhen.tech\/linux-tcp-queue\/","datePublished": "2014-08-16T11:11:24+08:00","dateModified": "2014-08-16T11:11:24+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux TCP队列相关参数的总结</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2014-08-16">2014-08-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;5506 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;11 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#一连接建立">一、连接建立</a></li>
+        <li><a href="#二数据包的接收">二、数据包的接收</a></li>
+        <li><a href="#三数据包的发送">三、数据包的发送</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪些参数，但我们经常是知其然而不知其所以然，每次照抄过来后，可能很快就忘记或混淆了它们的含义。本文尝试总结TCP队列缓冲相关的内核参数，从协议栈的角度梳理它们，希望可以更容易的理解和记忆。注意，本文内容均来源于参考文档，没有去读相关的内核源码做验证，不能保证内容严谨正确。作为Java程序员没读过内核源码是硬伤。</p>
+<p>下面我以server端为视角，从<strong>连接建立</strong>、<strong>数据包接收</strong>和<strong>数据包发送</strong>这3条路径对参数进行归类梳理。</p>
+<h3 id="一连接建立">一、连接建立</h3>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113863.png" /></p>
+<p>简单看下连接的建立过程，客户端向server发送<code>SYN</code>包，server回复<code>SYN＋ACK</code>，同时将这个处于<code>SYN_RECV</code>状态的连接保存到半连接队列。客户端返回<code>ACK</code>包完成三次握手，server将<code>ESTABLISHED</code>状态的连接移入<code>accept</code>队列，等待应用调用<code>accept()</code>。</p>
+<p>可以看到建立连接涉及两个队列：</p>
+<ul>
+<li>
+<p><strong>半连接队列</strong>，保存<code>SYN_RECV</code>状态的连接。队列长度由<code>net.ipv4.tcp_max_syn_backlog</code>设置</p>
+</li>
+<li>
+<p><strong>accept队列</strong>，保存<code>ESTABLISHED</code>状态的连接。队列长度为<code>min(net.core.somaxconn, backlog)</code>。其中<code>backlog</code>是我们创建<code>ServerSocket(int port,int backlog)</code>时指定的参数，最终会传递给<code>listen</code>方法：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">#include &lt;sys/socket.h&gt;
+</span></span><span class="line"><span class="cl">int listen(int sockfd, int backlog);
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<p>如果我们设置的<code>backlog</code>大于<code>net.core.somaxconn</code>，<code>accept</code>队列的长度将被设置为<code>net.core.somaxconn</code></p>
+<p>另外，为了应对<code>SYN flooding</code>（即客户端只发送SYN包发起握手而不回应ACK完成连接建立，填满server端的半连接队列，让它无法处理正常的握手请求），Linux实现了一种称为<code>SYN cookie</code>的机制，通过<code>net.ipv4.tcp_syncookies</code>控制，设置为1表示开启。简单说<code>SYN cookie</code>就是将连接信息编码在<code>ISN</code>(initial sequence number)中返回给客户端，这时server不需要将半连接保存在队列中，而是利用客户端随后发来的ACK带回的<code>ISN</code>还原连接信息，以完成连接的建立，避免了半连接队列被攻击<code>SYN</code>包填满。对于一去不复返的客户端握手，不理它就是了。</p>
+<h3 id="二数据包的接收">二、数据包的接收</h3>
+<p>先看看接收数据包经过的路径：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011113357.png" /></p>
+<p>数据包的接收，从下往上经过了三层：网卡驱动、系统内核空间，最后到用户态空间的应用。Linux内核使用<code>sk_buff</code>(<a href="http://vger.kernel.org/~davem/skb.html" target="_blank" rel="noopener noreffer ">socket kernel buffers</a>)数据结构描述一个数据包。当一个新的数据包到达，<code>NIC</code>（network interface controller）调用<code>DMA engine</code>，通过<code>Ring Buffer</code>将数据包放置到内核内存区。<code>Ring Buffer</code>的大小固定，它不包含实际的数据包，而是包含了指向<code>sk_buff</code>的描述符。当<code>Ring Buffer</code>满的时候，新来的数据包将给丢弃。一旦数据包被成功接收，<code>NIC</code>发起中断，由内核的中断处理程序将数据包传递给IP层。经过IP层的处理，数据包被放入队列等待TCP层处理。每个数据包经过TCP层一系列复杂的步骤，更新TCP状态机，最终到达<code>recv Buffer</code>，等待被应用接收处理。有一点需要注意，数据包到达<code>recv Buffer</code>，TCP就会回<code>ACK</code>确认，既TCP的<code>ACK</code>表示数据包已经被操作系统内核收到，但并不确保应用层一定收到数据（例如这个时候系统crash），因此一般建议应用协议层也要设计自己的<code>ACK</code>确认机制。</p>
+<p>上面就是一个相当简化的数据包接收流程，让我们逐层看看队列缓冲有关的参数。</p>
+<ol>
+<li><strong>网卡Bonding模式</strong></li>
+</ol>
+<p>当主机有1个以上的网卡时，Linux会将多个网卡绑定为一个虚拟的bonded网络接口，对TCP/IP而言只存在一个bonded网卡。多网卡绑定一方面能够提高网络吞吐量，另一方面也可以增强网络高可用。Linux支持7种Bonding模式：</p>
+<pre><code>- `Mode 0 (balance-rr)` Round-robin策略，这个模式具备负载均衡和容错能力
+- `Mode 1 (active-backup)` 主备策略，在绑定中只有一个网卡被激活，其他处于备份状态
+- `Mode 2 (balance-xor)` XOR策略，通过源MAC地址与目的MAC地址做异或操作选择slave网卡
+- `Mode 3 (broadcast)` 广播，在所有的网卡上传送所有的报文
+- `Mode 4 (802.3ad)`  IEEE 802.3ad 动态链路聚合。创建共享相同的速率和双工模式的聚合组
+- `Mode 5 (balance-tlb)` Adaptive transmit load balancing
+- `Mode 6 (balance-alb)` Adaptive load balancing
+</code></pre>
+<p>详细的说明参考内核文档<a href="https://www.kernel.org/doc/Documentation/networking/bonding.txt" target="_blank" rel="noopener noreffer ">Linux Ethernet Bonding Driver HOWTO</a>。我们可以通过<code>cat /proc/net/bonding/bond0</code>查看本机的Bonding模式：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011114466.png" /></p>
+<p>一般很少需要开发去设置网卡Bonding模式，自己实验的话可以参考<a href="http://linux.cloudibee.com/2009/10/linux-network-bonding-setup-guide/" target="_blank" rel="noopener noreffer ">这篇文档</a></p>
+<ol start="2">
+<li><strong>网卡多队列及中断绑定</strong></li>
+</ol>
+<p>随着网络的带宽的不断提升，单核CPU已经不能满足网卡的需求，这时通过多队列网卡驱动的支持，可以将每个队列通过中断绑定到不同的CPU核上，充分利用多核提升数据包的处理能力。</p>
+<p>首先查看网卡是否支持多队列，使用<code>lspci -vvv</code>命令，找到<code>Ethernet controller</code>项：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115916.png" /></p>
+<p>如果有MSI-X， Enable+ 并且Count &gt; 1，则该网卡是多队列网卡。</p>
+<p>然后查看是否打开了网卡多队列。使用命令<code>cat /proc/interrupts</code>，如果看到eth0-TxRx-0表明多队列支持已经打开：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011115744.png" /></p>
+<p>最后确认每个队列是否绑定到不同的CPU。<code>cat /proc/interrupts</code>查询到每个队列的中断号，对应的文件<code>/proc/irq/${IRQ_NUM}/smp_affinity</code>为中断号<code>IRQ_NUM</code>绑定的CPU核的情况。以十六进制表示，每一位代表一个CPU核：</p>
+<pre><code>```
+（00000001）代表CPU0
+（00000010）代表CPU1
+（00000011）代表CPU0和CPU1
+```
+</code></pre>
+<p>如果绑定的不均衡，可以手工设置，例如：</p>
+<pre><code>```
+echo &quot;1&quot; &gt; /proc/irq/99/smp_affinity  
+echo &quot;2&quot; &gt; /proc/irq/100/smp_affinity  
+echo &quot;4&quot; &gt; /proc/irq/101/smp_affinity  
+echo &quot;8&quot; &gt; /proc/irq/102/smp_affinity  
+echo &quot;10&quot; &gt; /proc/irq/103/smp_affinity  
+echo &quot;20&quot; &gt; /proc/irq/104/smp_affinity  
+echo &quot;40&quot; &gt; /proc/irq/105/smp_affinity  
+echo &quot;80&quot; &gt; /proc/irq/106/smp_affinity  
+```
+</code></pre>
+<ol start="3">
+<li>
+<p><strong>Ring Buffer</strong></p>
+<p><code>Ring Buffer</code>位于NIC和IP层之间，是一个典型的FIFO（先进先出）<a href="http://en.wikipedia.org/wiki/Circular_buffer" target="_blank" rel="noopener noreffer ">环形队列</a>。<code>Ring Buffer</code>没有包含数据本身，而是包含了指向<code>sk_buff</code>（<a href="http://vger.kernel.org/~davem/skb.html" target="_blank" rel="noopener noreffer ">socket kernel buffers</a>）的描述符。</p>
+</li>
+</ol>
+<p>可以使用<code>ethtool -g eth0</code>查看当前<code>Ring Buffer</code>的设置：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116458.png" /></p>
+<p>上面的例子接收队列为4096，传输队列为256。可以通过<code>ifconfig</code>观察接收和传输队列的运行状况：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011116204.png" /></p>
+<ul>
+<li><strong>RX errors</strong>：收包总的错误数</li>
+<li><strong>RX dropped</strong>: 表示数据包已经进入了<code>Ring Buffer</code>，但是由于内存不够等系统原因，导致在拷贝到内存的过程中被丢弃。</li>
+<li><strong>RX overruns</strong>: <code>overruns</code>意味着数据包没到<code>Ring Buffer</code>就被网卡物理层给丢弃了，而CPU无法及时的处理中断是造成<code>Ring Buffer</code>满的原因之一，例如中断分配的不均匀。</li>
+</ul>
+<p>当<code>dropped</code>数量持续增加，建议增大<code>Ring Buffer</code>，使用<code>ethtool -G</code>进行设置。</p>
+<ol start="4">
+<li><strong>Input Packet Queue(数据包接收队列)</strong></li>
+</ol>
+<p>当接收数据包的速率大于内核TCP处理包的速率，数据包将会缓冲在TCP层之前的队列中。接收队列的长度由参数<code>net.core.netdev_max_backlog</code>设置。</p>
+<ol start="5">
+<li><strong>recv Buffer</strong></li>
+</ol>
+<p><code>recv buffer</code>是调节TCP性能的关键参数。<code>BDP</code>(Bandwidth-delay product，带宽延迟积) 是网络的带宽和与<code>RTT</code>(round trip time)的乘积，<code>BDP</code>的含义是任意时刻处于在途未确认的最大数据量。<code>RTT</code>使用<code>ping</code>命令可以很容易的得到。为了达到最大的吞吐量，<code>recv Buffer</code>的设置应该大于<code>BDP</code>，即<code>recv Buffer &gt;= bandwidth * RTT</code>。假设带宽是100Mbps，<code>RTT</code>是100ms，那么<code>BDP</code>的计算如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">BDP = 100Mbps * 100ms = (100 / 8) * (100 / 1000) = 1.25MB
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Linux在2.6.17以后增加了<code>recv Buffer</code>自动调节机制，<code>recv buffer</code>的实际大小会自动在最小值和最大值之间浮动，以期找到性能和资源的平衡点，因此大多数情况下不建议将<code>recv buffer</code>手工设置成固定值。</p>
+<p>当<code>net.ipv4.tcp_moderate_rcvbuf</code>设置为1时，自动调节机制生效，每个TCP连接的recv Buffer由下面的3元数组指定：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">net.ipv4.tcp_rmem = &lt;MIN&gt; &lt;DEFAULT&gt; &lt;MAX&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>最初<code>recv buffer</code>被设置为<DEFAULT>，同时这个缺省值会覆盖<code>net.core.rmem_default</code>的设置。随后<code>recv buffer</code>根据实际情况在最大值和最小值之间动态调节。在缓冲的动态调优机制开启的情况下，我们将<code>net.ipv4.tcp_rmem</code>的最大值设置为<code>BDP</code>。</p>
+<p>当<code>net.ipv4.tcp_moderate_rcvbuf</code>被设置为0，或者设置了socket选项<code>SO_RCVBUF</code>，缓冲的动态调节机制被关闭。<code>recv buffer</code>的缺省值由<code>net.core.rmem_default</code>设置，但如果设置了<code>net.ipv4.tcp_rmem</code>，缺省值则被<code>&lt;DEFAULT&gt;</code>覆盖。可以通过系统调用<code>setsockopt()</code>设置<code>recv buffer</code>的最大值为<code>net.core.rmem_max</code>。在缓冲动态调节机制关闭的情况下，建议把缓冲的缺省值设置为<code>BDP</code>。</p>
+<p>注意这里还有一个细节，缓冲除了保存接收的数据本身，还需要一部分空间保存socket数据结构等额外信息。因此上面讨论的<code>recv buffer</code>最佳值仅仅等于<code>BDP</code>是不够的，还需要考虑保存socket等额外信息的开销。Linux根据参数<code>net.ipv4.tcp_adv_win_scale</code>计算额外开销的大小：</p>
+<p>Buffer / 2<sup>tcp_adv_win_scale</sup></p>
+<p>如果<code>net.ipv4.tcp_adv_win_scale</code>的值为1，则二分之一的缓冲空间用来做额外开销，如果为2的话，则四分之一缓冲空间用来做额外开销。因此<code>recv buffer</code>的最佳值应该设置为：</p>
+<p>BDP / (1 – 1 / 2<sup>tcp_adv_win_scale</sup>)</p>
+<h3 id="三数据包的发送">三、数据包的发送</h3>
+<p>发送数据包经过的路径：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117967.png" /></p>
+<p>和接收数据的路径相反，数据包的发送从上往下也经过了三层：用户态空间的应用、系统内核空间、最后到网卡驱动。应用先将数据写入TCP <code>send buffer</code>，TCP层将<code>send buffer</code>中的数据构建成数据包转交给IP层。IP层会将待发送的数据包放入队列<code>QDisc</code>(queueing discipline)。数据包成功放入<code>QDisc</code>后，指向数据包的描述符<code>sk_buff</code>被放入<code>Ring Buffer</code>输出队列，随后网卡驱动调用<code>DMA engine</code>将数据发送到网络链路上。</p>
+<p>同样我们逐层来梳理队列缓冲有关的参数。</p>
+<ol>
+<li><strong>send Buffer</strong></li>
+</ol>
+<p>同<code>recv Buffer</code>类似，和<code>send Buffer</code>有关的参数如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">net.ipv4.tcp_wmem = &lt;MIN&gt; &lt;DEFAULT&gt; &lt;MAX&gt;
+</span></span><span class="line"><span class="cl">net.core.wmem_default
+</span></span><span class="line"><span class="cl">net.core.wmem_max
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>发送端缓冲的自动调节机制很早就已经实现，并且是无条件开启，没有参数去设置。如果指定了<code>tcp_wmem</code>，则<code>net.core.wmem_default</code>被<code>tcp_wmem</code>的<DEFAULT>覆盖。<code>send Buffer</code>在<code>tcp_wmem</code>的最小值和最大值之间自动调节。如果调用<code>setsockopt()</code>设置了socket选项<code>SO_SNDBUF</code>，将关闭发送端缓冲的自动调节机制，<code>tcp_wmem</code>将被忽略，<code>SO_SNDBUF</code>的最大值由<code>net.core.wmem_max</code>限制。</p>
+<ol start="2">
+<li><strong>QDisc</strong></li>
+</ol>
+<p><code>QDisc</code>（queueing discipline ）位于IP层和网卡的<code>ring buffer</code>之间。我们已经知道，<code>ring buffer</code>是一个简单的FIFO队列，这种设计使网卡的驱动层保持简单和快速。而<code>QDisc</code>实现了流量管理的高级功能，包括流量分类，优先级和流量整形（rate-shaping）。可以使用<code>tc</code>命令配置<code>QDisc</code>。</p>
+<p><code>QDisc</code>的队列长度由<code>txqueuelen</code>设置，和接收数据包的队列长度由内核参数<code>net.core.netdev_max_backlog</code>控制所不同，<code>txqueuelen</code>是和网卡关联，可以用<code>ifconfig</code>命令查看当前的大小：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011117299.png" /></p>
+<p>使用<code>ifconfig</code>调整<code>txqueuelen</code>的大小：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">ifconfig eth0 txqueuelen 2000
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="3">
+<li><strong>Ring Buffer</strong></li>
+</ol>
+<p>和数据包的接收一样，发送数据包也要经过<code>Ring Buffer</code>，使用<code>ethtool -g eth0</code>查看：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118456.png" /></p>
+<p>其中<code>TX</code>项是<code>Ring Buffer</code>的传输队列，也就是发送队列的长度。设置也是使用命令<code>ethtool -G</code>。</p>
+<ol start="4">
+<li><strong>TCP Segmentation和Checksum Offloading</strong></li>
+</ol>
+<p>操作系统可以把一些TCP/IP的功能转交给网卡去完成，特别是Segmentation(分片)和checksum的计算，这样可以节省CPU资源，并且由硬件代替<code>OS</code>执行这些操作会带来性能的提升。</p>
+<p>一般以太网的<code>MTU</code>（Maximum Transmission Unit）为1500 bytes，假设应用要发送数据包的大小为7300bytes，<code>MTU</code>1500字节 － IP头部20字节 － TCP头部20字节＝有效负载为1460字节，因此7300字节需要拆分成5个segment：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118576.png" /></p>
+<p><code>Segmentation</code>(分片)操作可以由操作系统移交给网卡完成，虽然最终线路上仍然是传输5个包，但这样节省了CPU资源并带来性能的提升：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011118473.png" /></p>
+<p>可以使用<code>ethtool -k eth0</code>查看网卡当前的offloading情况：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png"
+        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png 2x"
+        data-sizes="auto"
+        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png"
+        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011119505.png" /></p>
+<p>上面这个例子<code>checksum</code>和<code>tcp segmentation</code>的<code>offloading</code>都是打开的。如果想设置网卡的<code>offloading</code>开关，可以使用<code>ethtool -K</code>(注意K是大写)命令，例如下面的命令关闭了tcp segmentation offload：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ethtool -K eth0 tso off
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="5">
+<li><strong>网卡多队列和网卡Bonding模式</strong></li>
+</ol>
+<p>在数据包的接收过程中已经介绍过了。</p>
+<p>至此，终于梳理完毕。整理TCP队列相关参数的起因是最近在排查一个网络超时问题，原因还没有找到，产生的“副作用”就是这篇文档。再想深入解决这个问题可能需要做TCP协议代码的profile，需要继续学习，希望不久的将来就可以再写文档和大家分享了。</p>
+<p><strong>参考文档</strong></p>
+<ul>
+<li><a href="http://www.linuxjournal.com/content/queueing-linux-network-stack" target="_blank" rel="noopener noreffer ">Queueing in the Linux Network Stack</a></li>
+<li><a href="http://www.ece.virginia.edu/cheetah/documents/papers/TCPlinux.pdf" target="_blank" rel="noopener noreffer ">TCP Implementation in Linux: A Brief Tutorial</a></li>
+<li><a href="http://sandilands.info/sgordon/impact-of-bandwidth-delay-product-on-tcp-throughput" target="_blank" rel="noopener noreffer ">Impact of Bandwidth Delay Product on TCP Throughput</a></li>
+<li><a href="http://hellojava.info/?p=292" target="_blank" rel="noopener noreffer ">Java程序员也应该知道的系统知识系列之网卡</a></li>
+</ul>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2014-08-16</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/linux-tcp-queue/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/linux-tcp-queue/" data-title="Linux TCP队列相关参数的总结" data-via="mazhen" data-hashtags="linux,networking,performance"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/linux-tcp-queue/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/linux-tcp-queue/" data-title="Linux TCP队列相关参数的总结"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/linux-tcp-queue/" data-title="Linux TCP队列相关参数的总结"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/linux/">linux</a>,&nbsp;<a href="/tags/networking/">networking</a>,&nbsp;<a href="/tags/performance/">performance</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/so-linger/" class="prev" rel="prev" title="TCP `SO_LINGER` 选项对Socket.close的影响"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>TCP `SO_LINGER` 选项对Socket.close的影响</a>
+            <a href="/dns/" class="next" rel="next" title="从开发角度看DNS">从开发角度看DNS<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script></body>
+</html>

@@ -1,0 +1,24 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>performance - Tag - mazhen.tech</title>
+        <link>https://mazhen.tech/tags/performance/</link>
+        <description>performance - Tag - mazhen.tech</description>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/performance/" rel="self" type="application/rss+xml" /><item>
+    <title>Linux TCP队列相关参数的总结</title>
+    <link>https://mazhen.tech/linux-tcp-queue/</link>
+    <pubDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/linux-tcp-queue/</guid>
+    <description><![CDATA[在Linux上做网络应用的性能优化时，一般都会对TCP相关的内核参数进行调节，特别是和缓冲、队列有关的参数。网上搜到的文章会告诉你需要修改哪]]></description>
+</item>
+<item>
+    <title>使用USE Method分析系统性能问题</title>
+    <link>https://mazhen.tech/use-method/</link>
+    <pubDate>Sat, 07 Jun 2014 10:56:00 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/use-method/</guid>
+    <description><![CDATA[遇到性能问题怎么分析定位？这个问题太难回答了，各种底层环境、依赖系统、业务场景，怎么可能有统一的答案。于是产生了各种分析性能问题的“流派”。]]></description>
+</item>
+</channel>
+</rss>

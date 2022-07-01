@@ -4,34 +4,34 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Linux内核参数的配置方法 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Linux内核参数的配置方法" />
-<meta property="og:description" content="/proc是一个伪文件系统，可以像访问普通文件系统一样访问系统内部的数据结构，获取当前运行的进程、统计和硬件等各种信息。例如可以使用cat /" />
+        <title>TCP `SO_LINGER` 选项对Socket.close的影响 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="TCP `SO_LINGER` 选项对Socket.close的影响" />
+<meta property="og:description" content="Java中通过Socket.setSoLinger设置SO_LINGER选项，有三种组合形式： Socket.setSoLinger(false, linger) 设置为false，这时linger值被忽略" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mazhen.tech/linux-kernel-parameter/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2014-05-30T20:21:08+08:00" />
-<meta property="article:modified_time" content="2014-05-30T20:21:08+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+<meta property="og:url" content="https://mazhen.tech/so-linger/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2014-08-10T11:08:57+08:00" />
+<meta property="article:modified_time" content="2014-08-10T11:08:57+08:00" /><meta property="og:site_name" content="mazhen.tech" />
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
 
-<meta name="twitter:title" content="Linux内核参数的配置方法"/>
-<meta name="twitter:description" content="/proc是一个伪文件系统，可以像访问普通文件系统一样访问系统内部的数据结构，获取当前运行的进程、统计和硬件等各种信息。例如可以使用cat /"/>
+<meta name="twitter:title" content="TCP `SO_LINGER` 选项对Socket.close的影响"/>
+<meta name="twitter:description" content="Java中通过Socket.setSoLinger设置SO_LINGER选项，有三种组合形式： Socket.setSoLinger(false, linger) 设置为false，这时linger值被忽略"/>
 <meta name="application-name" content="mazhen.tech">
 <meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/linux-kernel-parameter/" /><link rel="next" href="https://mazhen.tech/use-method/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/so-linger/" /><link rel="prev" href="https://mazhen.tech/time-wait/" /><link rel="next" href="https://mazhen.tech/linux-tcp-queue/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "Linux内核参数的配置方法",
+        "headline": "TCP `SO_LINGER` 选项对Socket.close的影响",
         "inLanguage": "zh-CN",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "https:\/\/mazhen.tech\/linux-kernel-parameter\/"
-        },"genre": "posts","keywords": "linux","wordcount":  714 ,
-        "url": "https:\/\/mazhen.tech\/linux-kernel-parameter\/","datePublished": "2014-05-30T20:21:08+08:00","dateModified": "2014-05-30T20:21:08+08:00","publisher": {
+            "@id": "https:\/\/mazhen.tech\/so-linger\/"
+        },"genre": "posts","keywords": "java, networking","wordcount":  1253 ,
+        "url": "https:\/\/mazhen.tech\/so-linger\/","datePublished": "2014-08-10T11:08:57+08:00","dateModified": "2014-08-10T11:08:57+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
@@ -103,63 +103,87 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Linux内核参数的配置方法</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">TCP `SO_LINGER` 选项对Socket.close的影响</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2014-05-30">2014-05-30</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;714 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;2 minutes&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2014-08-10">2014-08-10</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1253 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="true">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
                     <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents"></nav></div>
-            </div><div class="content" id="content"><p><code>/proc</code>是一个伪文件系统，可以像访问普通文件系统一样访问系统内部的数据结构，获取当前运行的进程、统计和硬件等各种信息。例如可以使用<code>cat /proc/cpuinfo</code>获取CPU信息。</p>
-<p><code>/proc/sys/</code>下的文件和子目录比较特别，它们对应的是系统内核参数，更改文件内容就意味着修改了相应的内核参数，可以简单的使用<code>echo</code>命令来完成修改：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>上面这个命令启用了<code>TCP SYN Cookie</code>保护。使用<code>echo</code>修改内核参数很方便，但是系统重启后这些修改都会消失，而且不方便配置参数的集中管理。<code>/sbin/sysctl</code>命令就是用来查看和修改内核参数的工具。<code>sysctl -a</code>会列出所有内核参数当前的配置信息，比遍历目录<code>/proc/sys/</code>方便多了。<code>sysctl -w</code>修改单个参数的配置，例如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sysctl -w net.ipv4.tcp_syncookies=1
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>和上面<code>echo</code>命令的效果一样。需要注意的是，要把目录分隔符斜杠<code>/</code>替换为点<code>.</code>，并省略<code>proc.sys</code>部分。</p>
-<p>通过<code>sysctl -w</code>修改，还是没有解决重启后修改失效的问题。更常用的方式是，把需要修改的配置集中放在<code>/etc/sysctl.conf</code>文件中，使用<code>sysctl -p</code>重新加载配置使其生效。在系统启动阶段，<code>init</code>程序会运行<code>/etc/rc.d/rc.sysinit</code>脚本，其中包含了执行<code>sysctl</code>命令，并使用了<code>/etc/sysctl.conf</code>中的配置信息。因此放在<code>/etc/sysctl.conf</code>中的系统参数设置在重启后也同样生效，同时也便于集中管理修改过了哪些内核参数。</p>
-<p>最后，哪里有比较完整的内核参数说明文档？我觉得<a href="https://www.kernel.org/doc/Documentation/sysctl/" target="_blank" rel="noopener noreffer ">kernel.org</a>的文档比较全。例如我们常会遇到的网络内核参数，<a href="https://www.kernel.org/doc/Documentation/sysctl/net.txt" target="_blank" rel="noopener noreffer ">net.core</a> 和 <a href="https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt" target="_blank" rel="noopener noreffer ">net.ipv4</a> 。TCP相关的参数，也可以通过<a href="http://man7.org/linux/man-pages/man7/tcp.7.html" target="_blank" rel="noopener noreffer ">man文档</a>了解。</p>
+            </div><div class="content" id="content"><p>Java中通过Socket.setSoLinger设置<code>SO_LINGER</code>选项，有三种组合形式：</p>
+<ul>
+<li><strong>Socket.setSoLinger(<code>false</code>, linger)</strong></li>
+</ul>
+<p>设置为false，这时linger值被忽略。摘自<a href="http://book.douban.com/subject/1756533/" target="_blank" rel="noopener noreffer ">unix network programming</a>：</p>
+<blockquote>
+<p>The default action of close with a TCP socket is to mark the socket as closed and return to the process immediately. The socket descriptor is on longer usable by the process: it can&rsquo;t be used as an argument to read or write.
+TCP will try to send any data that is already queued to be sent to the other end, and after this occurs, the normal TCP connection termination sequence takes place.</p>
+</blockquote>
+<p>如果设置为false，socket主动调用close时会立即返回，操作系统会将残留在缓冲区中的数据发送到对端，并按照正常流程关闭(交换FIN-ACK），最后连接进入<code>TIME_WAIT</code>状态。</p>
+<p>我们可以写个演示程序，客户端发送较大的数据包后，立刻调用<code>close</code>，而server端将<code>Receive Buffer</code>设置的很小。<code>close</code>会立即返回，客户端的Java进程结束，但是当我们用<code>tcpdump/Wireshark</code>抓包会发现，操作系统正在帮你发送数据，内核缓冲区中的数据发送完毕后，发送<code>FIN</code>包关闭连接。</p>
+<ul>
+<li><strong>Socket.setSoLinger(<code>true</code>, <code>0</code>)</strong></li>
+</ul>
+<blockquote>
+<p>TCP discards any data still remaining in the socket send buffer and sends an RST to the peer, not the normal four-packet connection termination sequence.</p>
+</blockquote>
+<p>主动调用<code>close</code>的一方也是立刻返回，但是这时TCP会丢弃发送缓冲中的数据，而且不是按照正常流程关闭连接（不发送FIN包），直接发送<code>RST</code>，对端会收到<code>java.net.SocketException: Connection reset</code>异常。同样使用tcpdump抓包可以很容易观察到。</p>
+<p>另外有些人会用这种方式解决主动关闭放方有大量<code>TIME_WAIT</code>状态连接的问题，因为发送完<code>RST</code>后，连接立即销毁，不会停留在<code>TIME_WAIT</code>状态。一般不建议这么做，除非你有<a href="http://stackoverflow.com/questions/3757289/tcp-option-so-linger-zero-when-its-required/13088864#13088864" target="_blank" rel="noopener noreffer ">合适的理由</a>：</p>
+<blockquote>
+<ul>
+<li>If the a client of your server application misbehaves (times out, returns invalid data, etc.) an abortive close makes sense to avoid being stuck in CLOSE_WAIT or ending up in the TIME_WAIT state.</li>
+</ul>
+</blockquote>
+<ul>
+<li>
+<p>If you must restart your server application which currently has thousands of client connections you might consider setting this socket option to avoid thousands of server sockets in TIME_WAIT (when calling close() from the server end) as this might prevent the server from getting available ports for new client connections after being restarted.</p>
+</li>
+<li>
+<p>On page 202 in the aforementioned book it specifically says: &ldquo;There are certain circumstances which warrant using this feature to send an abortive close. One example is an RS-232 terminal server, which might hang forever in CLOSE_WAIT trying to deliver data to a stuck terminal port, but would properly reset the stuck port if it got an RST to discard the pending data.&rdquo;</p>
+</li>
+<li>
+<p><strong>Socket.setSoLinger(<code>true</code>, <code>linger &gt; 0</code>)</strong></p>
+</li>
+</ul>
+<blockquote>
+<p>if there is any data still remaining in the socket send buffer, the process will sleep when calling close() until either all the data is sent and acknowledged by the peer or the configured linger timer expires.
+if the linger time expires before the remaining data is sent and acknowledged, close returns EWOULDBLOCK and any remaining data in the send buffer is discarded.</p>
+</blockquote>
+<p>如果<code>SO_LINGER</code>选项生效，并且超时设置大于零，调用close的线程被阻塞，TCP会发送缓冲区中的残留数据，这时有两种可能的情况：</p>
+<ol>
+<li>数据发送完毕，收到对方的ACK，然后进行连接的正常关闭（交换FIN-ACK）</li>
+<li>超时，未发送完成的数据被丢弃，连接发送<code>RST</code>进行非正常关闭</li>
+</ol>
+<p>类似的我们也可以构造demo观察这种场景。客户端发送较大的数据包，server端将Receive Buffer设置的很小。设置<code>linger</code>为1，调用<code>close</code>时等待1秒。注意<code>SO_LINGER</code>的单位为<strong>秒</strong>，好多人被坑过。假设<code>close</code>后1秒内缓冲区中的数据发送不完，使用<code>tcpdump/Wireshark</code>可以观察到客户端发送<code>RST</code>包，服务端收到<code>java.net.SocketException: Connection reset</code>异常。</p>
+<p>最后，在使用NIO时，最好不设置<code>SO_LINGER</code>，以后会再写一篇文章分析。</p>
 </div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2014-05-30</span>
+                <span>Updated on 2014-08-10</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"><span>
-                            <a class="link-to-markdown" href="/linux-kernel-parameter/index.md" target="_blank">Read Markdown</a>
+                            <a class="link-to-markdown" href="/so-linger/index.md" target="_blank">Read Markdown</a>
                         </span></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/linux-kernel-parameter/" data-title="Linux内核参数的配置方法" data-via="mazhen" data-hashtags="linux"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/linux-kernel-parameter/" data-hashtag="linux"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/linux-kernel-parameter/" data-title="Linux内核参数的配置方法"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/linux-kernel-parameter/" data-title="Linux内核参数的配置方法"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/so-linger/" data-title="TCP `SO_LINGER` 选项对Socket.close的影响" data-via="mazhen" data-hashtags="java,networking"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/so-linger/" data-hashtag="java"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/so-linger/" data-title="TCP `SO_LINGER` 选项对Socket.close的影响"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/so-linger/" data-title="TCP `SO_LINGER` 选项对Socket.close的影响"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/linux/">linux</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/java/">java</a>,&nbsp;<a href="/tags/networking/">networking</a></section>
         <section>
             <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
         </section>
     </div>
 
-    <div class="post-nav">
-            <a href="/use-method/" class="next" rel="next" title="使用USE Method分析系统性能问题">使用USE Method分析系统性能问题<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+    <div class="post-nav"><a href="/time-wait/" class="prev" rel="prev" title="应用关闭后占用端口时间过长的问题"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>应用关闭后占用端口时间过长的问题</a>
+            <a href="/linux-tcp-queue/" class="next" rel="next" title="Linux TCP队列相关参数的总结">Linux TCP队列相关参数的总结<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
 </div>
 </article></div>
             </main><footer class="footer">
