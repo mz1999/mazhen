@@ -123,11 +123,11 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://cdn.mazhen.tech//images/202207011436753.png"
-        data-srcset="https://cdn.mazhen.tech//images/202207011436753.png, https://cdn.mazhen.tech//images/202207011436753.png 1.5x, https://cdn.mazhen.tech//images/202207011436753.png 2x"
+        data-src="https://cdn.mazhen.tech/images/202207011436753.png"
+        data-srcset="https://cdn.mazhen.tech/images/202207011436753.png, https://cdn.mazhen.tech/images/202207011436753.png 1.5x, https://cdn.mazhen.tech/images/202207011436753.png 2x"
         data-sizes="auto"
-        alt="https://cdn.mazhen.tech//images/202207011436753.png"
-        title="https://cdn.mazhen.tech//images/202207011436753.png" /></p>
+        alt="https://cdn.mazhen.tech/images/202207011436753.png"
+        title="https://cdn.mazhen.tech/images/202207011436753.png" /></p>
 <p>其中，<code>SQL Parser</code>的功能是把SQL语句按照SQL语法规则进行解析，将文本转换成抽象语法树（<code>AST</code>），这部分功能需要些背景知识才能比较容易理解，我尝试做下相关知识的介绍，希望能对读懂这部分代码有点帮助。</p>
 <p>TiDB是使用<a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a>根据预定义的SQL语法规则文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>生成SQL语法解析器。我们可以在TiDB的<a href="https://github.com/pingcap/tidb/blob/50e98f427e7943396dbe38d23178b9f9dc5398b7/Makefile#L50" target="_blank" rel="noopener noreffer ">Makefile</a>文件中看到这个过程，先build <code>goyacc</code>工具，然后使用<code>goyacc</code>根据<code>parser.y</code>生成解析器<code>parser.go</code>：</p>
 <div class="highlight"><div class="chroma">
@@ -154,11 +154,11 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://cdn.mazhen.tech//images/202207011436897.png"
-        data-srcset="https://cdn.mazhen.tech//images/202207011436897.png, https://cdn.mazhen.tech//images/202207011436897.png 1.5x, https://cdn.mazhen.tech//images/202207011436897.png 2x"
+        data-src="https://cdn.mazhen.tech/images/202207011436897.png"
+        data-srcset="https://cdn.mazhen.tech/images/202207011436897.png, https://cdn.mazhen.tech/images/202207011436897.png 1.5x, https://cdn.mazhen.tech/images/202207011436897.png 2x"
         data-sizes="auto"
-        alt="https://cdn.mazhen.tech//images/202207011436897.png"
-        title="https://cdn.mazhen.tech//images/202207011436897.png" /></p>
+        alt="https://cdn.mazhen.tech/images/202207011436897.png"
+        title="https://cdn.mazhen.tech/images/202207011436897.png" /></p>
 <p>上图描述了使用<code>Lex &amp; Yacc</code>构建编译器的流程。<code>Lex</code>根据用户定义的<code>patterns</code>生成词法分析器。词法分析器读取源代码，根据<code>patterns</code>将源代码转换成<code>tokens</code>输出。<code>Yacc</code>根据用户定义的语法规则生成语法分析器。语法分析器以词法分析器输出的<code>tokens</code>作为输入，根据语法规则创建出语法树。最后对语法树遍历生成输出结果，结果可以是产生机器代码，或者是边遍历 <code>AST</code> 边解释执行。</p>
 <p>从上面的流程可以看出，用户需要分别为<code>Lex</code>提供<code>patterns</code>的定义，为 <code>Yacc</code> 提供语法规则文件，<code>Lex &amp; Yacc</code> 根据用户提供的输入文件，生成符合他们需求的词法分析器和语法分析器。这两种配置都是文本文件，并且结构相同：</p>
 <div class="highlight"><div class="chroma">

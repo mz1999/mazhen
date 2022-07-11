@@ -119,7 +119,7 @@
     <li><a href="#总结">总结</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><p>容器的跨主机通信主要有两种方式：封包模式和路由模式。<a href="./docker-overlay-networks/" rel="">上一篇文章</a>演示了使用<code>VXLAN</code>协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转发实现容器的跨主机通信。</p>
+            </div><div class="content" id="content"><p>容器的跨主机通信主要有两种方式：封包模式和路由模式。<a href="/docker-overlay-networks" rel="">上一篇文章</a>演示了使用<code>VXLAN</code>协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转发实现容器的跨主机通信。</p>
 <h2 id="路由模式概述">路由模式概述</h2>
 <p>宿主机将它负责的容器IP网段，以某种方式告诉其他节点，然后每个节点根据收到的<code>&lt;宿主机-容器IP网段&gt;</code>映射关系，配置本机路由表。</p>
 <p>这样对于容器间跨节点的IP包，就可以根据本机路由表获得到达目的容器的网关地址，即目的容器所在的宿主机地址。接着在把IP包封装成二层网络数据帧时，将目的MAC地址设置为网关的MAC地址，IP包就可以通过二层网络送达目的容器所在的宿主机。</p>
@@ -136,13 +136,13 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://cdn.mazhen.tech//images/202207112201327.png"
-        data-srcset="https://cdn.mazhen.tech//images/202207112201327.png, https://cdn.mazhen.tech//images/202207112201327.png 1.5x, https://cdn.mazhen.tech//images/202207112201327.png 2x"
+        data-src="https://cdn.mazhen.tech/images/202207112201327.png"
+        data-srcset="https://cdn.mazhen.tech/images/202207112201327.png, https://cdn.mazhen.tech/images/202207112201327.png 1.5x, https://cdn.mazhen.tech/images/202207112201327.png 2x"
         data-sizes="auto"
-        alt="https://cdn.mazhen.tech//images/202207112201327.png"
+        alt="https://cdn.mazhen.tech/images/202207112201327.png"
         title="route" /></p>
 <p>路由模式的实验比较简单，关键在于宿主机上路由规则的配置。为了简化实验，这些路由规则都是我们手工配置，而且两个节点之间二层网络互通，没有跨网段。</p>
-<p>参照<a href="./docker-overlay-networks.md" rel="">Docker跨主机Overlay网络动手实验</a>，创建“容器”，<code>veth pairs</code>，<code>bridge</code>，设置IP，激活虚拟设备。</p>
+<p>参照<a href="/docker-overlay-networks" rel="">Docker跨主机Overlay网络动手实验</a>，创建“容器”，<code>veth pairs</code>，<code>bridge</code>，设置IP，激活虚拟设备。</p>
 <p>然后在<code>node-1</code>上增加路由规则：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -186,8 +186,8 @@
 </ul>
 <p>至此，容器网络的三篇系列完成：</p>
 <ul>
-<li><a href="./docker-network-bridge/" rel="">Docker单机网络模型动手实验</a></li>
-<li><a href="./docker-overlay-networks/" rel="">Docker跨主机Overlay网络动手实验</a></li>
+<li><a href="/docker-network-bridge" rel="">Docker单机网络模型动手实验</a></li>
+<li><a href="/docker-overlay-networks" rel="">Docker跨主机Overlay网络动手实验</a></li>
 <li>Docker跨主机通信路由模式动手实验（本篇）</li>
 </ul>
 </div><div class="post-footer" id="post-footer">
