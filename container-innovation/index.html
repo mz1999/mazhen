@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Container Innovation - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Container Innovation" />
+<meta property="og:description" content="Kubernetes在2017年赢得了容器编排之战，使得基于容器&#43;Kubernetes来构建PaaS平台成为了云计算的主流方式。在人们把关注" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/container-innovation/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-12-16T22:03:21+08:00" />
+<meta property="article:modified_time" content="2018-12-16T22:03:21+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="Container Innovation"/>
+<meta name="twitter:description" content="Kubernetes在2017年赢得了容器编排之战，使得基于容器&#43;Kubernetes来构建PaaS平台成为了云计算的主流方式。在人们把关注"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/container-innovation/" /><link rel="prev" href="https://mazhen.tech/docker-route-networks/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Container Innovation",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/container-innovation\/"
+        },"genre": "posts","keywords": "docker, linux, networking","wordcount":  6115 ,
+        "url": "https:\/\/mazhen.tech\/container-innovation\/","datePublished": "2018-12-16T22:03:21+08:00","dateModified": "2018-12-16T22:03:21+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Container Innovation</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-12-16">2018-12-16</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;6115 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;13 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#操作系统的工作方式">操作系统的工作方式</a>
+      <ul>
+        <li><a href="#cpu的特权等级">CPU的特权等级</a></li>
+        <li><a href="#系统调用">系统调用</a></li>
+        <li><a href="#优化系统调用">优化系统调用</a></li>
+      </ul>
+    </li>
+    <li><a href="#虚拟化技术">虚拟化技术</a>
+      <ul>
+        <li><a href="#kvm--qemu">KVM &amp; QEMU</a></li>
+        <li><a href="#cpu-虚拟化技术-vt-x">CPU 虚拟化技术 VT-x</a></li>
+      </ul>
+    </li>
+    <li><a href="#容器的本质">容器的本质</a></li>
+    <li><a href="#虚拟化容器技术">虚拟化容器技术</a></li>
+    <li><a href="#gvisor">gVisor</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p><code>Kubernetes</code>在2017年赢得了容器编排之战，使得基于<code>容器</code>+<code>Kubernetes</code>来构建<code>PaaS</code>平台成为了云计算的主流方式。在人们把关注的目光都聚焦在<code>Kubernetes</code>上时，容器技术领域在2018年也发生了很多创新，包括<code>amazon</code>最近开源的轻量级虚拟机管理器 <a href="https://firecracker-microvm.github.io/" target="_blank" rel="noopener noreffer ">Firecracker</a>，<code>Google</code>在今年5月份开源的基于用户态操作系统内核的 <a href="https://github.com/google/gvisor" target="_blank" rel="noopener noreffer ">gVisor</a> 容器，还有更早开源的虚拟化容器项目 <a href="https://katacontainers.io/" target="_blank" rel="noopener noreffer ">KataContainers</a>，可谓百花齐放。一般的开发者可能认为容器就等于<code>Docker</code>，没想到容器领域还在发生着这么多创新。我在了解这些项目时，发现如果没有一些背景知识，很难get到它们的创新点。我试着通过这篇文章进行一次背景知识的梳理。让我们先从最基本的问题开始：操作系统是怎么工作的？</p>
+<h2 id="操作系统的工作方式">操作系统的工作方式</h2>
+<p>我们不去讨论操作系统的标准定义，而是想想操作系统的本质是什么，它是怎么为应用提供服务的呢？</p>
+<p>其实操作系统很“懒”，它不是一直运行着主动干活，而是躺在那儿等着被中断“唤醒”，然后根据中断它的事件类型做下一步处理：是不是有键盘敲击、网络数据包到达，还是时间片到了该考虑进程切换，或者是有应用向内核发出了服务请求。内核处理完唤醒它的事件，会将控制权返还给应用程序，然后等着再次被中断“唤醒”。内核就是这样由中断驱动，控制着CPU、内存等硬件资源，为应用程序提供服务。</p>
+<p>”唤醒“操作系统内核的事件主要分为三类：</p>
+<ul>
+<li><strong>中断</strong>：来自硬件设备的处理请求；</li>
+<li><strong>异常</strong>：当前正在执行的进程，由于非法指令或者其他原因导致执行失败而产生的异常事情处理请求，典型的如缺页异常；</li>
+<li><strong>系统调用</strong>：应用程序主动向操作系统内核发出的服务请求。系统调用的本质其实也是中断，相对于硬件设备的中断，这种中断被称为<code>软中断</code>。</li>
+</ul>
+<h3 id="cpu的特权等级">CPU的特权等级</h3>
+<p>内核代码常驻在内存中，被每个进程映射到它的<strong>逻辑地址空间</strong>：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112206004.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112206004.png, https://cdn.mazhen.tech//images/202207112206004.png 1.5x, https://cdn.mazhen.tech//images/202207112206004.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112206004.png"
+        title="space" /></p>
+<p>进程<code>逻辑地址空间</code>的最大长度与实际可用的物理内存数量无关，由<code>CPU</code>的字长决定。进程的<code>逻辑地址空间</code>划分为两个部分，分别称为<code>内核空间</code>和<code>用户空间</code>。<code>用户空间</code>是彼此独立的，而逻辑地址空间顶部的<code>内核空间</code>是被所有进程共享。</p>
+<p>从每个进程的角度来看，地址空间中只有自身一个进程，它不会感知到其他进程的存在。由于<code>内核空间</code>被所有进程共享，为了防止进程修改彼此的数据而造成相互干扰，用户进程不能直接操作或读取<code>内核空间</code>中的数据。同时由于内核管理着所有硬件资源，也不能让用户进程直接执行<code>内核空间</code>中的代码。操作系统应该如何做到这种限制呢？</p>
+<p>实际上，操作系统的实现依赖 <code>CPU</code> 提供的功能。现代的<code>CPU</code>体系架构都提供几种特权级别，每个特权级别有各种限制。各级别可以看作是环，内环能够访问更多的功能，外环则较少，被称为<a href="https://en.wikipedia.org/wiki/Protection_ring" target="_blank" rel="noopener noreffer ">protection rings</a>：</p>
+<img src="https://cdn.mazhen.tech//images/202207112207458.png" style="zoom: 25%;" />
+<p><code>Intel</code> 的 <code>CPU</code> 提供了4种特权级别， <code>Linux</code> 只使用了 <code>Ring0</code> 和 <code>Ring3</code> 两个级别。<code>Ring 0</code> 拥有最多的特权，它可以直接和CPU、内存等物理硬件交互。 <code>Ring 0</code> 被称为<code>内核态</code>，操作系统内核正是运行在<code>Ring 0</code>。<code>Ring 3</code>被称为<code>用户态</code>，应用程序运行在<code>用户态</code>。</p>
+<h3 id="系统调用">系统调用</h3>
+<p>在<code>用户态</code>禁止直接访问<code>内核态</code>，也就是说不同通过普通的函数调用方式调用内核代码，而必须使用<strong>系统调用</strong>陷入（<code>trap</code>）内核，完成从<code>用户态</code>到<code>内核态</code>的切换。内核首先检查进程是否允许执行想要的操作，然后代表进程执行所需的操作，完成后再返回到<code>用户态</code>。</p>
+<img src="https://cdn.mazhen.tech//images/202207112207187.png" style="zoom: 33%;" />
+<p>除了代表用户程序执行代码之外，内核还可以由硬件中断激活，然后在<code>中断上下文</code>中运行。另外除了普通进程，系统中还有<code>内核线程</code>在运行。<code>内核线程</code>不与任何特定的用户空间进程相关联。</p>
+<p><code>CPU</code> 在任何时间点上的活动必然为下列三者之一 ：</p>
+<ul>
+<li>运行于用户空间，执行应用程序</li>
+<li>运行于内核空间，处于<code>进程上下文</code>，即代表某个特定的进程执行</li>
+<li>运行于内核空间，处于<code>中断上下文</code>，与任何进程无关，处理某个特定的中断</li>
+</ul>
+<h3 id="优化系统调用">优化系统调用</h3>
+<p>从上面的讨论可以看出，由于<code>系统调用</code>会经过<code>用户态</code>到<code>内核态</code>的切换，开销要比普通函数调用大很多，因此在进行系统级编程时，减少<code>用户态</code>与<code>内核态</code>之间的切换是一个很重要的优化方法。</p>
+<p>例如同样是实现 <code>Overlay网络</code>，使用 <code>VXLAN</code> 完全在内核态完成封装和解封装，要比把数据包从内核态通过虚拟设备<code>TUN</code>传入用户态再进行处理要高效很多。</p>
+<p>对应的也可以从另外一个方向进行优化：使用 <a href="https://www.dpdk.org/" target="_blank" rel="noopener noreffer ">DPDK</a> 跳过内核网络协议栈，数据从网卡直接到达用户态，在用户态处理数据包，也就是说网络协议栈完全运行在用户态，同样避免了<code>用户态</code>和<code>内核态</code>的切换。像腾讯开源的 <a href="https://github.com/f-stack/f-stack" target="_blank" rel="noopener noreffer ">F-Stack</a>就是一个基于<a href="https://www.dpdk.org/" target="_blank" rel="noopener noreffer ">DPDK</a>运行在用户空间的TCP/IP协议栈。</p>
+<p>了解了操作系统内核的基本工作方式，我们再看下一个话题：<strong>虚拟化</strong>。</p>
+<h2 id="虚拟化技术">虚拟化技术</h2>
+<p>为了更高效灵活的使用硬件资源，同时能够实现服务间的安全隔离，我们需要虚拟化技术。运行虚拟化软件（<a href="https://en.wikipedia.org/wiki/Hypervisor" target="_blank" rel="noopener noreffer ">Hypervisor</a>或者叫<code>VMM</code>，virtual machine monitor）的物理设施我们称之为<code>Host</code>，安装在<code>Hypervisor</code>之上的虚拟机称为<code>Guest</code>。</p>
+<p>根据<code>Hypervisor</code>在系统中的位置，可以将它归类为<code>type-1</code>或<code>type-2</code>型。如果<code>hypervisor</code>直接运行在硬件之上，它通常被认为是<code>Type-1</code>型。如果<code>hypervisor</code>作为一个单独的层运行在操作系统之上，它将被认为是<code>Type 2</code>型。</p>
+<p><code>Type-1</code>型<code>Hypervisor</code>的概念图：</p>
+<img src="https://cdn.mazhen.tech//images/202207112208073.png" style="zoom: 67%;" />
+<p><code>Type-2</code>型<code>Hypervisor</code>的概念图：</p>
+<img src="https://cdn.mazhen.tech//images/202207112209569.png" style="zoom:67%;" />
+<h3 id="kvm--qemu">KVM &amp; QEMU</h3>
+<p>实际上<code>Type-1</code>和<code>Type-2</code>并没有严格的区分，像最常见的虚拟化软件 <a href="https://www.linux-kvm.org/" target="_blank" rel="noopener noreffer ">KVM</a>（Kernel-based Virtual Machine）是一个<code>Linux</code>内核模块，加载<code>KVM</code>后<code>Linux</code>内核就转换成了<code>Type-1 hypervisor</code>。同时，<code>Linux</code>还是一个通用的操作系统，也可以认为<code>KVM</code>是运行在<code>Linux</code>之上的<code>Type-2 hypervisor</code>。</p>
+<p>为了在<code>Host</code>上创建出虚拟机，仅仅有<code>KVM</code>是不够的。对于 <code>I/O</code> 的仿真，<code>KVM</code> 还需要 <a href="https://www.qemu.org/" target="_blank" rel="noopener noreffer ">QEMU</a>的配合。<code>QEMU</code> 是一个运行在用户空间程序，它可以仿真处理器和一系列的物理设备：磁盘、网络、<code>VGA</code>、<code>PCI</code>、<code>USB</code>、串口/并口等等，基于<code>QEMU</code>可以构造出一个完整的虚拟PC。</p>
+<p>值得注意的是，<code>QEMU</code> 有两种运行模式：<code>仿真模式</code>和<code>虚拟化模式</code>。在仿真模式下，<code>QEMU</code>可以在一个<code>Intel</code>的<code>Host</code>上运行<code>ARM</code>或<code>MIPS</code>虚拟机。这是怎么做到的呢？实际上，<code>QEMU</code> 通过 <code>TCG</code>（<a href="https://en.wikipedia.org/wiki/QEMU#Tiny_Code_Generator" target="_blank" rel="noopener noreffer ">Tiny Code Generator</a>）技术进行了二进制代码转换，可以认为这是一种高级语言的<code>VM</code>，就像<code>JVM</code>。例如可以将运行在<code>ARM</code>上的二进制转换为一种中间字节码，然后让它运行在<code>Host</code>的<code>Intel CPU</code>上。很明显，这种二进制代码转换有着巨大的性能开销。</p>
+<p>相对应的，<code>QEMU</code>的另一种是虚拟化模式，它借助<code>KVM</code>完成处理器的虚拟化。由于和CPU的体系结构紧密关联，虚拟化模式能够带来更好的性能，限制是<code>Guest</code>必须使用和<code>Host</code>一样的CPU体系机构。这就是我们最常用到的虚拟化技术栈：<code>KVM/QEMU</code></p>
+<img src="https://cdn.mazhen.tech//images/202207112209527.png" style="zoom: 33%;" />
+<p><code>KVM</code> 和 <code>QEMU</code> 有两种交互方式：通过设备文件<code>/dev/kvm</code> 和通过内存映射页面。<code>QEMU</code> 和 <code>KVM</code>之间的大块数据传递会使用内存映射页面。<code>/dev/kvm</code>是<code>KVM</code>暴露的主要API，它支持一系列<code>ioctl</code>接口，<code>QEMU</code> 使用这些接口和<code>KVM</code>交互。<code>/dev/kvm</code> API分为三个层次：</p>
+<ul>
+<li><strong>System Level</strong>: 用于<code>KVM</code>全局状态的维护，例如创建 <code>VM</code>；</li>
+<li><strong>VM Level</strong>: 用于处理和特定<code>VM</code>相关工作的 API，<code>vCPU</code> 就是通过这个级别的API创建出来的；</li>
+<li><strong>vCPU Level</strong>: 这是最细粒度的API，用于和特定<code>vCPU</code>的交互。<code>QEMU</code>会为每个<code>vCPU</code>分配一个专门的线程。</li>
+</ul>
+<h3 id="cpu-虚拟化技术-vt-x">CPU 虚拟化技术 VT-x</h3>
+<p><code>KVM</code>和<code>QEMU</code>配合完美，但和<code>CPU</code>的特权级别在一起就遇到了麻烦。我们知道，<code>hypervisor</code>需要管理宿主机的<code>CPU</code>、内存、<code>I/O</code>设备等资源，因此它需要运行在<code>ring 0</code>级别才能执行这些高特权操作。然而运行在<code>VM</code>中的操作系统希望得到访问所有资源的权限，它并不知道自己运行在虚拟机中。因为同一时间只有一个内核可以运行在<code>ring 0</code>，<code>Guest OS</code>不得不被“挤”到了<code>ring 1</code>，这一级别不能满足内核的需求。怎么解决？</p>
+<p>虽然我们可以使用软件的方式进行模拟，让<code>hypervisor</code>拦截应用发往<code>ring 0</code>的系统调用，再转发给<code>Guest OS</code>，但这么做会产生额外的性能损耗，而且方案复杂难以维护。<code>Intel</code>和<code>AMD</code>认识到了虚拟化的重要性，各自独立创建了<code>X86</code>架构的扩展指令集，分别称为 <code>VT-x</code> and <code>AMD-V</code>，从<code>CPU</code>层面支持虚拟化。</p>
+<p>以<code>Intel</code> CPU为例，<code>VT-x</code>不仅增加了虚拟化相关的指令集，还将CPU的指令划分会两种模式：<code>root</code> 和 <code>non-root</code>。<code>hypervisor</code>运行在 <code>root</code> 模式，而<code>VM</code>运行在<code>non-root</code>模式。指令在<code>non-root</code>模式的运行速度和<code>root</code>模式几乎一样，除了不能执行一些涉及CPU全局状态切换的指令。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112210555.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112210555.png, https://cdn.mazhen.tech//images/202207112210555.png 1.5x, https://cdn.mazhen.tech//images/202207112210555.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112210555.png"
+        title="vt-x" /></p>
+<p><code>VMX</code>（Virtual Machine Extensions）是增加到<code>VT-x</code>中的指令集，主要有四个指令：</p>
+<ul>
+<li><strong>VMXON</strong>：在这个指令执行之前，CPU还没有<code>root</code> 和 <code>non-root</code>的概念。<code>VMXON</code>执行后，CPU进入虚拟化模式。</li>
+<li><strong>VMXOFF</strong>：<code>VMXON</code>的相反操作，执行<code>VMXOFF</code>退出虚拟化模式。</li>
+<li><strong>VMLAUNCH</strong>：创建一个<code>VM</code>实例，然后进入<code>non-root</code>模式。</li>
+<li><strong>VMRESUME</strong>：进入<code>non-root</code>模式，恢复前面退出的<code>VM</code>实例。当<code>VM</code>试图执行一个在<code>non-root</code>禁止的指令，CPU立即切换到root模式，类似前面介绍的系统调用<code>trap</code>方式，这就是<code>VM</code>的退出。</li>
+</ul>
+<p>这样，<code>VT-x/KVM/QEMU</code> 构成了今天应用最广泛的虚拟化技术栈。</p>
+<p>有了上面的铺垫，终于要谈到容器技术了。</p>
+<h2 id="容器的本质">容器的本质</h2>
+<p>虽然虚拟化技术在灵活高效的使用硬件资源方面前进了一大步，但人们还觉得远远不够。特别是在机器使用量巨大的互联网公司。因为虚拟机一旦创建，为它分配的资源就相对固定，缺乏弹性，很难再提高机器的利用率。而且创建、销毁虚拟机也是相对“重”的操作。这时候容器技术出现了。我们知道，容器依赖的底层技术，<code>Linux Namesapce</code>和<code>Cgroups</code>都是最早由Google开发，提交进Linux内核的。</p>
+<p><strong>容器</strong>的本质就是一个进程，只不过对它进行了<code>Linux Namesapce</code>隔离，让它“看”不到外面的世界，用<code>Cgroups</code>限制了它能使用的资源，同时利用系统调用<code>pivot_root</code>或<code>chroot</code>切换了进程的根目录，把容器镜像挂载为根文件系统<code>rootfs</code>。<code>rootfs</code>中不仅有要运行的应用程序，还包含了应用的所有依赖库，以及操作系统的目录和文件。<code>rootfs</code>打包了应用运行的完整环境，这样就保证了在开发、测试、线上等多个场景的一致性。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112142723.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112142723.png, https://cdn.mazhen.tech//images/202207112142723.png 1.5x, https://cdn.mazhen.tech//images/202207112142723.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112142723.png"
+        title="docker" /></p>
+<p>从上图可以看出，容器和虚拟机的最大区别就是，每个虚拟机都有独立的操作系统内核<code>Guest OS</code>，而容器只是一种特殊的进程，它们共享同一个操作系统内核。</p>
+<p>看清了容器的本质，很多问题就容易理解。例如我们执行 <code>docker exec</code> 命令能够进入运行中的容器，好像登录进独立的虚拟机一样。实际上这只不过是利用系统调用<code>setns</code>，让当前进程进入到容器进程的<code>Namesapce</code>中，它就能“看到”容器内部的情况了。</p>
+<p>由于容器就是进程，它的创建、销毁非常轻量，对资源的使用控制更加灵活，因此让<code>Kubernetes</code>这种容器编排和资源调度工具可以大显身手，通过合理的搭配，极大的提高了整个集群的资源利用率。</p>
+<h2 id="虚拟化容器技术">虚拟化容器技术</h2>
+<p>前面提到，运行在一个宿主机上的所有容器共享同一个操作系统内核，这种隔离级别存在着很大的潜在安全风险。因此在公有云的多租户场景下，还是需要先用虚拟机进行租户强隔离，然后用户在虚拟机上再使用容器+<code>Kubernetes</code>部署应用。</p>
+<p>然而在<code>Serverless</code>的场景下，传统的先建虚拟机再创建容器的方式，在灵活性、执行效率方面难以满足需求。随着<code>Serverless</code>、<code>FaaS</code>（Function-as-a-Service）的兴起，各公有云厂商都将安全性容器作为了创新焦点。</p>
+<p>一个很自然能想到的方案，是结合虚拟机的强隔离安全性+容器的轻量灵活性，这就是虚拟化容器项目 <a href="https://katacontainers.io/" target="_blank" rel="noopener noreffer ">KataContainers</a>。</p>
+<p><a href="https://www.openstack.org/" target="_blank" rel="noopener noreffer ">OpenStack</a>在2017年底发布的 <code>KataContainers</code> 项目，最初是由 <code>Intel ClearContainer</code> 和 <code>Hyper runV</code> 两个项目合并而产生的。在<code>Kubernetes</code>场景下，一个<code>Pod</code>对应于<code>Kata Containers</code>启动的一个轻量化虚拟机，<code>Pod</code>中的容器，就是运行在这个轻量级虚拟机里的进程。每个<code>Pod</code>都运行在独立的操作系统内核上，从而达到安全隔离的目的。</p>
+<img src="https://cdn.mazhen.tech//images/202207112211690.png" style="zoom:50%;" />
+<p>可以看出，<code>KataContainers</code> 依赖 <code>KVM/QEMU</code>技术栈。</p>
+<p>amazon最近开源的<a href="https://firecracker-microvm.github.io/" target="_blank" rel="noopener noreffer ">Firecracker</a>也是为了实现在 functions-based services 场景下，多租户安全隔离的容器。</p>
+<img src="https://cdn.mazhen.tech//images/202207112212515.png" style="zoom:100%;" />
+<p><code>Firecracker</code>同样依赖<code>KVM</code>，然后它没有用到<code>QEMU</code>，因为<code>Firecracker</code>本身就是<code>QEMU</code>的替代实现。<code>Firecracker</code>是一个比<code>QEMU</code>更轻量级的<code>VMM</code>，它只仿真了4个设备：<code>virtio-net</code>，<code>virtio-block</code>，<code>serial console</code>和一个按钮的键盘，仅仅用来停止<code>microVM</code>。理论上，<code>KataContainers</code>可以用<code>Firecracker</code>换掉它现在使用的<code>QEMU</code>，从而将 <code>Firecracker</code>整合进<code>Kubernetes</code>生态圈。</p>
+<p>其实Google早就没有使用<code>QEMU</code>，而且对<code>KVM</code>进行了深度定制。我们可以从这篇介绍看出端倪：<a href="https://cloud.google.com/blog/products/gcp/7-ways-we-harden-our-kvm-hypervisor-at-google-cloud-security-in-plaintext" target="_blank" rel="noopener noreffer ">7 ways we harden our KVM hypervisor at Google Cloud: security in plaintext</a></p>
+<blockquote>
+<p>Non-QEMU implementation: Google does not use QEMU, the user-space virtual machine monitor and hardware emulation. Instead, we wrote our own user-space virtual machine monitor that has the following security advantages over QEMU</p>
+</blockquote>
+<blockquote>
+<p>&hellip;</p>
+</blockquote>
+<h2 id="gvisor">gVisor</h2>
+<p>Google 开源的<a href="https://github.com/google/gvisor" target="_blank" rel="noopener noreffer ">gVisor</a>为了实现安全容器另辟蹊径，它用 Go 实现了一个运行在用户态的操作系统内核，作为容器运行的<code>Guest Kernel</code>，每个容器都依赖独立的操作系统内核，实现了容器间安全隔离的目的。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112213958.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112213958.png, https://cdn.mazhen.tech//images/202207112213958.png 1.5x, https://cdn.mazhen.tech//images/202207112213958.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112213958.png"
+        title="gVisor" /></p>
+<p>虽然 <code>gVisor</code> 今年才开源，但它已经在<a href="https://cloud.google.com/appengine/" target="_blank" rel="noopener noreffer ">Google App Engine</a> 和 <a href="https://cloud.google.com/functions/docs/" target="_blank" rel="noopener noreffer ">Google Cloud Functions</a>运行了多年。</p>
+<img src="https://cdn.mazhen.tech//images/202207112213737.png" style="zoom: 50%;" />
+<p><code>gVisor</code>作为运行应用的安全沙箱，扮演着<code>Virtual kernel</code>的角色。同时<code>gVisor</code> 包含了一个兼容<a href="https://www.opencontainers.org/" target="_blank" rel="noopener noreffer ">Open Container Initiative (OCI)</a> 的运行时<code>runsc</code>，因此可以用它替换掉 Docker 的 <code>runc</code>，整合进<code>Kubernetes</code>生态圈，为<code>Kubernetes</code>带来另一种安全容器的实现方案。</p>
+<p><code>Kata Containers</code>和<code>gVisor</code>的本质都是为容器提供一个独立的操作系统内核，避免容器共享宿主机的内核而产生安全风险。<code>KataContainers</code>使用了传统的虚拟化技术，<code>gVisor</code>则自己实现了一个运行在用户态、极小的内核。<code>gVisor</code>比<code>KataContainers</code>更加轻量级，根据这个<a href="https://www.youtube.com/watch?v=pWyJahTWa4I" target="_blank" rel="noopener noreffer ">分享</a>的介绍，<code>gVisor</code>目前只实现了211个Linux系统调用，启动时间150ms，内存占用15MB。</p>
+<p><code>gVisor</code>实现原理，简单来说是模拟内核的行为，使用某种方式拦截应用发起的系统调用，经过<code>gVisor</code>的安全控制，代替容器进程向宿主机发起可控的系统调用。目前<code>gVisor</code>实现了两种拦截方式：</p>
+<ul>
+<li>基于<a href="https://en.wikipedia.org/wiki/Ptrace" target="_blank" rel="noopener noreffer ">Ptrace</a> 机制的拦截</li>
+<li>使用 <code>KVM</code> 来进行系统调用拦截。</li>
+</ul>
+<p>因为<code>gVisor</code>基于拦截系统调用的实现原理，它并不适合系统调用密集的应用。</p>
+<p>最后，对于像我这样没有读过Linux内核代码的后端程序员，<code>gVisor</code>是一个很好的窥探内核内部实现的窗口，又激起了我研究内核的兴趣。Twitter上看到有人和我有类似的看法：</p>
+<img src="https://cdn.mazhen.tech//images/202207112214087.png" style="zoom:50%;" />
+<p>希望下次能分享<code>gVisor</code>深入研究系列。保持好奇心，Stay hungry. Stay foolish.</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-12-16</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/container-innovation/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/container-innovation/" data-title="Container Innovation" data-via="mazhen" data-hashtags="docker,linux,networking"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/container-innovation/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/container-innovation/" data-title="Container Innovation"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/container-innovation/" data-title="Container Innovation"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/docker/">docker</a>,&nbsp;<a href="/tags/linux/">linux</a>,&nbsp;<a href="/tags/networking/">networking</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/docker-route-networks/" class="prev" rel="prev" title="Docker跨主机通信路由模式动手实验"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Docker跨主机通信路由模式动手实验</a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span><span class="icp-splitter">&nbsp;|&nbsp;</span><br class="icp-br"/>
+                    <span class="icp"><a target="_blank" href="https://beian.miit.gov.cn">粤ICP备2022085181号</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'G-LBEVB8TRX2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=G-LBEVB8TRX2" async></script></body>
+</html>

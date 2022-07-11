@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Docker跨主机Overlay网络动手实验 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Docker跨主机Overlay网络动手实验" />
+<meta property="og:description" content="上一篇文章我演示了docker bridge网络模型的实验，这次我将展示如何利用Overlay 网络实现跨主机容器的通信。 两个容器docker1" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mazhen.tech/docker-overlay-networks/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-11-07T21:52:36+08:00" />
+<meta property="article:modified_time" content="2018-11-07T21:52:36+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
+
+<meta name="twitter:title" content="Docker跨主机Overlay网络动手实验"/>
+<meta name="twitter:description" content="上一篇文章我演示了docker bridge网络模型的实验，这次我将展示如何利用Overlay 网络实现跨主机容器的通信。 两个容器docker1"/>
+<meta name="application-name" content="mazhen.tech">
+<meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/docker-overlay-networks/" /><link rel="prev" href="https://mazhen.tech/docker-network-bridge/" /><link rel="next" href="https://mazhen.tech/docker-route-networks/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Docker跨主机Overlay网络动手实验",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/mazhen.tech\/docker-overlay-networks\/"
+        },"genre": "posts","keywords": "docker, linux, networking","wordcount":  3436 ,
+        "url": "https:\/\/mazhen.tech\/docker-overlay-networks\/","datePublished": "2018-11-07T21:52:36+08:00","dateModified": "2018-11-07T21:52:36+08:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "mazhen"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="mazhen.tech">mazhen.tech</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/tags/"> 标签 </a><a class="menu-item" href="/categories/"> 分类 </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="mazhen.tech">mazhen.tech</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/tags/" title="">标签</a><a class="menu-item" href="/categories/" title="">分类</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker跨主机Overlay网络动手实验</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-11-07">2018-11-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;3436 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="true">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#vxlan">VXLAN</a></li>
+    <li><a href="#实现方案一">实现方案一</a></li>
+    <li><a href="#实现方案二">实现方案二</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p><a href="./docker-network-bridge/" rel="">上一篇文章</a>我演示了<code>docker bridge</code>网络模型的实验，这次我将展示如何利用<code>Overlay 网络</code>实现跨主机容器的通信。</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112154262.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112154262.png, https://cdn.mazhen.tech//images/202207112154262.png 1.5x, https://cdn.mazhen.tech//images/202207112154262.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112154262.png"
+        title="cross nodes" /></p>
+<p>两个容器<code>docker1</code>和<code>docker2</code>分别位于节点<code>Node-1</code>和<code>Node-2</code>，如何实现容器的跨主机通信呢？一般来说有两种实现方式：</p>
+<ul>
+<li>封包模式：利用<code>Overlay</code>网络协议在节点间建立“隧道”，容器之间的网络包被封装在外层的网络协议包中进行传输。</li>
+<li>路由模式：容器间的网络包传输全部用三层网络的路由转发来实现。</li>
+</ul>
+<p>本文主要介绍封包模式。<code>Overlay</code>网络主要有两种方式，一种是使用UDP在用户态封装，一种是利用<code>VXLAN</code> 在内核态封装。由于减少了用户态到内核态的切换，封包解包逻辑都在内核态进行，<code>VXLAN</code> 的性能更好，成为了容器网络的主流方案。</p>
+<p>关于路由模式，会在<a href="./docker-route-networks/" rel="">下一篇文章</a>介绍。</p>
+<h2 id="vxlan">VXLAN</h2>
+<p><code>VXLAN</code>（Virtual Extensible LAN）是一种网络虚拟化技术，它将链路层的以太网包封装到UDP包中进行传输。<code>VXLAN</code>最初是由VMware、Cisco开发，主要解决云环境下多租户的二层网络隔离。我们常听到公有云厂商宣称支持<code>VPC</code>（virtual private cloud），实际底层就是使用<code>VXLAN</code>实现的。</p>
+<p><code>VXLAN</code> packet的结构：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112155616.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112155616.png, https://cdn.mazhen.tech//images/202207112155616.png 1.5x, https://cdn.mazhen.tech//images/202207112155616.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112155616.png"
+        title="vxlan" /></p>
+<p>我们可以看到，最内部是原始的二层网络包，外面加上一个<code>VXLAN header</code>，其中最重要的是<code>VNI</code>（VXLAN network identifier)字段，它用来唯一标识一个<code>VXLAN</code>。也就是说，使用不同的<code>VNI</code>来区分不同的虚拟二层网络。<code>VNI</code>有24位，基本够公用云厂商使用了。要知道原先用来网络隔离的虚拟局域网VLAN只支持4096个虚拟网络。</p>
+<p>在 <code>VXLAN header</code>外面封装了正常的UDP包。<code>VXLAN</code>在UDP之上，实现了一个虚拟的二层网络，连接在这个虚拟二层网络上的主机，就像连接在普通的局域网上一样，可以互相通信。</p>
+<p>介绍完背景知识，我们可以开始动手实验了。</p>
+<h2 id="实现方案一">实现方案一</h2>
+<p>参照<a href="https://github.com/coreos/flannel" target="_blank" rel="noopener noreffer ">Flannel</a>的实现方案：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112156887.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112156887.png, https://cdn.mazhen.tech//images/202207112156887.png 1.5x, https://cdn.mazhen.tech//images/202207112156887.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112156887.png"
+        title="flannel" /></p>
+<ul>
+<li><strong>配置内核参数，允许IP forwarding</strong></li>
+</ul>
+<p>分别在<code>Node-1</code>、<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo sysctl net.ipv4.conf.all.forwarding=1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>创建“容器”</strong></li>
+</ul>
+<p>在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns add docker1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns add docker2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为什么创建个<code>Namesapce</code>就说是“容器”？请参考<a href="./docker-network-bridge.md" rel="">上一篇文章</a>。</p>
+<ul>
+<li><strong>创建Veth pairs</strong></li>
+</ul>
+<p>分别在<code>Node-1</code>、<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link add veth0 type veth peer name veth1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>将Veth的一端放入“容器”</strong></li>
+</ul>
+<p>在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set veth0 netns docker1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set veth0 netns docker2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>创建bridge</strong></li>
+</ul>
+<p>分别在<code>Node-1</code>、<code>Node-2</code>上创建bridge <code>br0</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo brctl addbr br0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>将Veth的另一端接入bridge</strong></li>
+</ul>
+<p>分别在<code>Node-1</code>、<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo brctl addif br0 veth1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>为&quot;容器“内的网卡分配IP地址，并激活上线</strong></li>
+</ul>
+<p>在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker1 ip addr add 172.18.10.2/24 dev veth0
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker1 ip link set veth0 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker2 ip addr add 172.18.20.2/24 dev veth0
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker2 ip link set veth0 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>Veth另一端的网卡激活上线</strong></li>
+</ul>
+<p>分别在<code>Node-1</code>、<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set veth1 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>为bridge分配IP地址，激活上线</strong></li>
+</ul>
+<p>在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add 172.18.10.1/24 dev br0
+</span></span><span class="line"><span class="cl">sudo ip link set br0 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add 172.18.20.1/24 dev br0
+</span></span><span class="line"><span class="cl">sudo ip link set br0 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>将bridge设置为“容器”的缺省网关</strong></li>
+</ul>
+<p>在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker1 route add default gw 172.18.10.1 veth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker2 route add default gw 172.18.20.1 veth0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>创建VXLAN虚拟网卡</strong></li>
+</ul>
+<p><code>VXLAN</code>需要在宿主机上创建一个虚拟网络设备对 <code>VXLAN</code> 的包进行封装和解封装，实现这个功能的设备称为 <code>VTEP</code>（VXLAN Tunnel Endpoint）。宿主机之间通过<code>VTEP</code>建立“隧道”，在其中传输虚拟二层网络包。</p>
+<p>在<code>Node-1</code>创建<code>vxlan100</code>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link add vxlan100 type vxlan \
+</span></span><span class="line"><span class="cl">    id 100 \
+</span></span><span class="line"><span class="cl">    local 192.168.31.183 \
+</span></span><span class="line"><span class="cl">    dev enp0s3 \
+</span></span><span class="line"><span class="cl">    dstport 4789 \
+</span></span><span class="line"><span class="cl">    nolearning
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为<code>vxlan100</code>分配IP地址，然后激活：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip addr add 172.18.10.0/32 dev vxlan100
+</span></span><span class="line"><span class="cl">sudo ip link set vxlan100 up
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为了让<code>Node-1</code>上访问<code>172.18.20.0/24</code>网段的数据包能进入“隧道”，我们需要增加如下的路由规则：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip route add 172.18.20.0/24 dev vxlan100
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>Node-2</code>上执行相应的命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link add vxlan100 type vxlan \
+</span></span><span class="line"><span class="cl">    id 100 \
+</span></span><span class="line"><span class="cl">    local 192.168.31.192 \
+</span></span><span class="line"><span class="cl">    dev enp0s3 \
+</span></span><span class="line"><span class="cl">    dstport 4789 \
+</span></span><span class="line"><span class="cl">    nolearning
+</span></span><span class="line"><span class="cl">sudo ip addr add 172.18.20.0/32 dev vxlan100
+</span></span><span class="line"><span class="cl">sudo ip link set vxlan100 up
+</span></span><span class="line"><span class="cl">sudo ip route add 172.18.10.0/24 dev vxlan100 scope global
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>手动更新ARP和FDB</strong></li>
+</ul>
+<p>虚拟设备<code>vxlan100</code>会用<code>ARP</code>和<code>FDB</code> (forwarding database) 数据库中记录的信息，填充网络协议包，建立节点间转发虚拟网络数据包的“隧道”。</p>
+<p>我们知道，在二层网络上传输IP包，需要先根据目的IP地址查询到目的MAC地址，这就是<code>ARP</code>（Address Resolution Protocol）协议的作用。我们应该可以通过ARP查询到其他节点上容器IP地址对应的MAC地址，然后填充在<code>VXLAN</code>内层的网络包中。</p>
+<p><code>FDB</code>是记录网桥设备转发数据包的规则。虚拟网络数据包根据上面定义的路由规则，从<code>br0</code>进入了本机的<code>vxlan100</code>“隧道”入口，应该可以在<code>FDB</code>中查询到“隧道”出口的MAC地址应该如何到达，这样，两个<code>VTEP</code>就能完成”隧道“的建立。</p>
+<p><code>vxlan</code>为了建立节点间的“隧道”，需要一种机制，能让一个节点的加入、退出信息通知到其他节点，可以采用<code>multicast</code>的方式进行节点的自动发现，也有很多<code>Unicast</code>的方案，这篇文章<a href="https://vincent.bernat.ch/en/blog/2017-vxlan-linux" target="_blank" rel="noopener noreffer ">&lt;VXLAN &amp; Linux&gt;</a>有很详细的介绍。总之就是要找到一种方式，能够更新每个节点的<code>ARP</code>和<code>FDB</code>数据库。</p>
+<p>如果是使用<a href="https://github.com/coreos/flannel" target="_blank" rel="noopener noreffer ">Flannel</a>，它在节点启动的时候会采用某种机制自动更新其他节点的ARP和FDB数据库。现在我们的实验只能在两个节点上手动更新<code>ARP</code>和<code>FDB</code>。</p>
+<p>首先在两个节点上查询到设备<code>vxlan100</code>的MAC地址，例如在我当前的环境：</p>
+<p><code>Node-1</code>上<code>vxlan100</code>的MAC地址是<code>3a:8d:b8:69:10:3e</code>
+<code>Node-2</code>上<code>vxlan100</code>的MAC地址是<code>0e:e6:e6:5d:c2:da</code></p>
+<p>然后在<code>Node-1</code>上增加ARP和FDB的记录：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip neighbor add 172.18.20.2 lladdr 0e:e6:e6:5d:c2:da dev vxlan100
+</span></span><span class="line"><span class="cl">sudo bridge fdb append 0e:e6:e6:5d:c2:da dev vxlan100 dst 192.168.31.192
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们可以确认下执行结果：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112157782.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112157782.png, https://cdn.mazhen.tech//images/202207112157782.png 1.5x, https://cdn.mazhen.tech//images/202207112157782.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112157782.png"
+        title="node-1" /></p>
+<p><code>ARP</code>中已经记录了<code>Node-2</code>上容器IP对应的MAC地址。再看看<code>FDB</code>的情况：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112158834.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112158834.png, https://cdn.mazhen.tech//images/202207112158834.png 1.5x, https://cdn.mazhen.tech//images/202207112158834.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112158834.png"
+        title="node-2" /></p>
+<p>根据最后一条新增规则，我们可以知道如何到达<code>Node-2</code>上“隧道”的出口<code>vxlan100</code>。“隧道”两端是使用UDP进行传输，即容器间通讯的二层网络包是靠UDP在宿主机之间通信。</p>
+<p>类似的，在<code>Node-2</code>上执行下面的命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip neighbor add 172.18.10.2 lladdr 3a:8d:b8:69:10:3e dev vxlan100
+</span></span><span class="line"><span class="cl">sudo bridge fdb append 3a:8d:b8:69:10:3e dev vxlan100 dst 192.168.31.183
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>测试容器的跨节点通信</strong></li>
+</ul>
+<p>现在，容器<code>docker1</code>和<code>docker1</code>之间就可以相互访问了。</p>
+<p>我们从<code>docker1</code>访问<code>docker2</code>，在<code>Node-1</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker1 ping -c 3 172.18.20.2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>同样可以从<code>docker2</code>访问<code>docker1</code>，在<code>Node-2</code>上执行：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip netns exec docker2 ping -c 3 172.18.10.2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在测试过程中如果需要troubleshooting，可以使用<code>tcpdump</code>在<code>veth1</code>、<code>br0</code>、<code>vxlan100</code>等虚拟设备上抓包，确认网络包是按照预定路线在转发：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo tcpdump -i vxlan100 -n
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>测试环境恢复</strong></li>
+</ul>
+<p>在两个节点上删除我们创建的虚拟设备：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip link set br0 down
+</span></span><span class="line"><span class="cl">sudo brctl delbr br0
+</span></span><span class="line"><span class="cl">sudo ip link  del veth1
+</span></span><span class="line"><span class="cl">sudo ip link del vxlan100
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="实现方案二">实现方案二</h2>
+<p>Docker原生的<a href="https://docs.docker.com/network/overlay/" target="_blank" rel="noopener noreffer ">overlay driver</a>底层也是使用<code>VXLAN</code>技术，但实现方案和<a href="https://github.com/coreos/flannel" target="_blank" rel="noopener noreffer ">Flannel</a>略有不同：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112159004.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112159004.png, https://cdn.mazhen.tech//images/202207112159004.png 1.5x, https://cdn.mazhen.tech//images/202207112159004.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112159004.png"
+        title="overlay driver" /></p>
+<p>我们可以看到，<code>vxlan100</code>被“插”在了虚拟交换机<code>br0</code>上，虚拟网络数据包从<code>br0</code>到<code>vxlan100</code>不是通过本机路由，而是<code>vxlan100</code>根据<code>FDB</code>直接进行了转发。</p>
+<p>执行的命令略有差异，我不再赘述过程，直接提供了命令，大家自己实验吧：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"># 在Node-1上执行
+</span></span><span class="line"><span class="cl">sudo sysctl net.ipv4.conf.all.forwarding=1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns add docker1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link add veth0 type veth peer name veth1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set veth0 netns docker1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addbr br0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addif br0 veth1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker1 ip addr add 172.18.10.2/24 dev veth0
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker1 ip link set veth0 up
+</span></span><span class="line"><span class="cl">sudo ip link set veth1 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set br0 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker1 route add default veth0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link add vxlan100 type vxlan \
+</span></span><span class="line"><span class="cl">    id 100 \
+</span></span><span class="line"><span class="cl">    local 192.168.31.183 \
+</span></span><span class="line"><span class="cl">    dev enp0s5 \
+</span></span><span class="line"><span class="cl">    dstport 4789 \
+</span></span><span class="line"><span class="cl">    nolearning \
+</span></span><span class="line"><span class="cl">    proxy
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set vxlan100 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addif br0 vxlan100
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip neigh add 172.18.20.2 lladdr [docker2的MAC地址] dev vxlan100
+</span></span><span class="line"><span class="cl">sudo bridge fdb append [docker2的MAC地址]  dev vxlan100 dst 192.168.31.192
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"># 在Node-2上执行
+</span></span><span class="line"><span class="cl">sudo sysctl net.ipv4.conf.all.forwarding=1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns add docker2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link add veth0 type veth peer name veth1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set veth0 netns docker2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addbr br0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addif br0 veth1
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker2 ip addr add 172.18.20.2/24 dev veth0
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker2 ip link set veth0 up
+</span></span><span class="line"><span class="cl">sudo ip link set veth1 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set br0 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip netns exec docker2 route add default veth0
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link add vxlan100 type vxlan \
+</span></span><span class="line"><span class="cl">    id 100 \
+</span></span><span class="line"><span class="cl">    local 192.168.31.192 \
+</span></span><span class="line"><span class="cl">    dev enp0s5 \
+</span></span><span class="line"><span class="cl">    dstport 4789 \
+</span></span><span class="line"><span class="cl">    nolearning \
+</span></span><span class="line"><span class="cl">    proxy
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip link set vxlan100 up
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo brctl addif br0 vxlan100
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo ip neigh add 172.18.10.2 lladdr [docker1的MAC地址] dev vxlan100
+</span></span><span class="line"><span class="cl">sudo bridge fdb append [docker1的MAC地址]  dev vxlan100 dst 192.168.31.183
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>相信通过亲自动手实验，容器网络对你来说不再神秘。希望本文对你理解容器网络有所帮助。</p>
+<p>下一篇我将动手实验容器跨主机通信的<a href="./docker-route-networks/" rel="">路由模式</a>。</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2018-11-07</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="/docker-overlay-networks/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/docker-overlay-networks/" data-title="Docker跨主机Overlay网络动手实验" data-via="mazhen" data-hashtags="docker,linux,networking"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/docker-overlay-networks/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/docker-overlay-networks/" data-title="Docker跨主机Overlay网络动手实验"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/docker-overlay-networks/" data-title="Docker跨主机Overlay网络动手实验"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/docker/">docker</a>,&nbsp;<a href="/tags/linux/">linux</a>,&nbsp;<a href="/tags/networking/">networking</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/docker-network-bridge/" class="prev" rel="prev" title="Docker单机网络模型动手实验"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Docker单机网络模型动手实验</a>
+            <a href="/docker-route-networks/" class="next" rel="next" title="Docker跨主机通信路由模式动手实验">Docker跨主机通信路由模式动手实验<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.101.0">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.11"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2018 - 2022</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://mazhen.tech/" target="_blank">mazhen</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a></span><span class="icp-splitter">&nbsp;|&nbsp;</span><br class="icp-br"/>
+                    <span class="icp"><a target="_blank" href="https://beian.miit.gov.cn">粤ICP备2022085181号</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.379f2372b0221e443a4f9a93fda4e2b46d80ac5e3dfd1b65d071d58a3d6d329d6ace42bd2cb1c1da241653ead73d887e3029444877b77dce6df8ad5b54370ba6.css" integrity="sha512-N58jcrAiHkQ6T5qT/aTitG2ArF49/Rtl0HHVij1tMp1qzkK9LLHB2iQWU+rXPYh+MClESHe3fc5t+K1bVDcLpg=="><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.2d0f7b71a99aaff94e9624ff32a8dc42ce645a0cba433fdc091cf34735027efd1fa2db024c2f591d768f426255f17bbf3d500b7c967b0437b3979956dffa81c6.css" integrity="sha512-LQ97camar/lOliT/MqjcQs5kWgy6Qz/cCRzzRzUCfv0fotsCTC9ZHXaPQmJV8Xu/PVALfJZ7BDezl5lW3/qBxg=="><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.7e654c67e741180b83f7b4d829967003fea37a5d5014f549f0a3d7f945d2b73e73e22a1dd04a7b68712c846f004232f3030d07305784fab026100af12af8f0ac.js" integrity="sha512-fmVMZ+dBGAuD97TYKZZwA/6jel1QFPVJ8KPX+UXStz5z4iod0Ep7aHEshG8AQjLzAw0HMFeE+rAmEArxKvjwrA=="></script><script type="text/javascript" src="/lib/lunr/lunr.min.fc0fb62076d4d0ce9ce5f033fbd78081d0caa2679c50c08985bfa2e28465ddf3f36a2ecd3f7983d9d45cdca68a67a362ab9267a3845517e8699b2a59f5c2568d.js" integrity="sha512-/A+2IHbU0M6c5fAz+9eAgdDKomecUMCJhb+i4oRl3fPzai7NP3mD2dRc3KaKZ6Niq5Jno4RVF+hpmypZ9cJWjQ=="></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.ab9f37a692ab09173b3793b49f69f352227eb2e52fec4b752467a5b386d739a30541c6a63e4f478dd5249d9bae16304db3bb6c32e69d81ee64f51cdd98efb519.js" integrity="sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ=="></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.ecee695e9734a0246bc64f1151f0d81609f49ced6dfa32ee20e41d38c469e003c1eee678bd28eca73a79cba603b43b385735124db5b304567f2ca2619f214e2b.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw=="></script><script type="text/javascript" src="/lib/sharer/sharer.min.874482ed2991eb3d99d2372f321560b551eaa0ec84351dc8b49e880d989d80a4414f1e83cc349dc11aa2ee3f3caf54bd40d691af18378292149589501fb6d9de.js" integrity="sha512-h0SC7SmR6z2Z0jcvMhVgtVHqoOyENR3ItJ6IDZidgKRBTx6DzDSdwRqi7j88r1S9QNaRrxg3gpIUlYlQH7bZ3g=="></script><script type="text/javascript" src="/lib/katex/katex.min.33bfe3919a0a1259f58da698daba022bd26de2dfa3fe2aeed1edaf2270e454ee4b634101b779baead8d34f95c5b061f62c91be55144bdae7884775347ebb3f19.js" integrity="sha512-M7/jkZoKEln1jaaY2roCK9Jt4t+j/iru0e2vInDkVO5LY0EBt3m66tjTT5XFsGH2LJG+VRRL2ueIR3U0frs/GQ=="></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.640fd13eb028f3c0e5c119e7a0d56a28836740d716111cd12b4dcf0da038188262559bc61485906dd582b1479b3197e45a88677e782c0e35f353a3e890ee231b.js" integrity="sha512-ZA/RPrAo88DlwRnnoNVqKINnQNcWERzRK03PDaA4GIJiVZvGFIWQbdWCsUebMZfkWohnfngsDjXzU6PokO4jGw=="></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.710c5291333846f1408dd05e04392b9658587c44706568ccfe88a329f3ec9a1474248d94ddf5d295b51a269e52960061fc5cd898cc96b9d4535cb9cd8f731b10.js" integrity="sha512-cQxSkTM4RvFAjdBeBDkrllhYfERwZWjM/oijKfPsmhR0JI2U3fXSlbUaJp5SlgBh/FzYmMyWudRTXLnNj3MbEA=="></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.575865d1f9ce5d6e8276a7b9655aadc3c4c1a49569bb75d10d142d8bdea3ff4e3eb4c6ab3eb09d5c4504dd475fbdf2984e93a7f43578cc464156bd078438ae89.js" integrity="sha512-V1hl0fnOXW6Cdqe5ZVqtw8TBpJVpu3XRDRQti96j/04+tMarPrCdXEUE3UdfvfKYTpOn9DV4zEZBVr0HhDiuiQ=="></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.c975ea3858dd8c7347d46343fb510ed236efbde6c0069cc6283eba7639d47e22a560c1391c6314247a0269e1380f93d31b662c4897fa770ab2514bd0bd2d2f68.js" integrity="sha512-yXXqOFjdjHNH1GND+1EO0jbvvebABpzGKD66djnUfiKlYME5HGMUJHoCaeE4D5PTG2YsSJf6dwqyUUvQvS0vaA=="></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.8f3907fa55b08d1250417a302a5836b4095aeba0e8de276226fbabed0058c004aec93be43d27a90cb1c7b80dffd331535aae064d507b1c9f140b42edb18d7d90.js" integrity="sha512-jzkH+lWwjRJQQXowKlg2tAla66Do3idiJvur7QBYwASuyTvkPSepDLHHuA3/0zFTWq4GTVB7HJ8UC0LtsY19kA=="></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'G-LBEVB8TRX2', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=G-LBEVB8TRX2" async></script></body>
+</html>

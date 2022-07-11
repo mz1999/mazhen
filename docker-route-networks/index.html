@@ -4,34 +4,34 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>关于MySQL XA事务的隔离级别 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="关于MySQL XA事务的隔离级别" />
-<meta property="og:description" content="为什么XA事务建议用SERIALIZABLE隔离级别 在MySQL最新的官方文档中，关于XA Transactions的介绍有这么一段描述： As with" />
+        <title>Docker跨主机通信路由模式动手实验 - mazhen.tech</title><meta name="Description" content="mazhen 的技术站点"><meta property="og:title" content="Docker跨主机通信路由模式动手实验" />
+<meta property="og:description" content="容器的跨主机通信主要有两种方式：封包模式和路由模式。上一篇文章演示了使用VXLAN协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mazhen.tech/mysql-xa/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2018-06-05T14:44:59+08:00" />
-<meta property="article:modified_time" content="2018-06-05T14:44:59+08:00" /><meta property="og:site_name" content="mazhen.tech" />
+<meta property="og:url" content="https://mazhen.tech/docker-route-networks/" /><meta property="og:image" content="https://mazhen.tech/android-chrome-512x512.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-11-11T22:00:22+08:00" />
+<meta property="article:modified_time" content="2018-11-11T22:00:22+08:00" /><meta property="og:site_name" content="mazhen.tech" />
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://mazhen.tech/android-chrome-512x512.png"/>
 
-<meta name="twitter:title" content="关于MySQL XA事务的隔离级别"/>
-<meta name="twitter:description" content="为什么XA事务建议用SERIALIZABLE隔离级别 在MySQL最新的官方文档中，关于XA Transactions的介绍有这么一段描述： As with"/>
+<meta name="twitter:title" content="Docker跨主机通信路由模式动手实验"/>
+<meta name="twitter:description" content="容器的跨主机通信主要有两种方式：封包模式和路由模式。上一篇文章演示了使用VXLAN协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转"/>
 <meta name="application-name" content="mazhen.tech">
 <meta name="apple-mobile-web-app-title" content="mazhen.tech"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/mysql-xa/" /><link rel="prev" href="https://mazhen.tech/radondb/" /><link rel="next" href="https://mazhen.tech/rdbms-fundamental/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://mazhen.tech/docker-route-networks/" /><link rel="prev" href="https://mazhen.tech/docker-overlay-networks/" /><link rel="next" href="https://mazhen.tech/container-innovation/" /><link rel="stylesheet" href="/css/style.min.61c0835a1733ac3f92b41b61b403dca9b8d4a3a7e4021c89af2c45a731f6343a82bc7fb214f4926e2c4669c8d258218b7da5d0e86d081ec97f3c1d823d48df2e.css" integrity="sha512-YcCDWhczrD+StBthtAPcqbjUo6fkAhyJryxFpzH2NDqCvH+yFPSSbixGacjSWCGLfaXQ6G0IHsl/PB2CPUjfLg=="><link rel="preload" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.29f91fc180ec2e4225c10a7a2c59e5f3335d2c6c6ef58000d50bf020d92ce0f85c125412bea73254b2c3f5a3215ddd77b908e85ed10a368b0e59a66a5e07a5d2.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="></noscript><link rel="preload" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/animate/animate.min.738daa4d2c3fc0f677ff92c1cc3f81c397fb6d2176a31a2eeb011bf88fe5a9e68a57914321f32fbd1a7bef6cb88dc24b2ae1943a96c931d83f053979d1f25803.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="></noscript><script type="application/ld+json">
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "关于MySQL XA事务的隔离级别",
+        "headline": "Docker跨主机通信路由模式动手实验",
         "inLanguage": "zh-CN",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "https:\/\/mazhen.tech\/mysql-xa\/"
-        },"genre": "posts","keywords": "db","wordcount":  1558 ,
-        "url": "https:\/\/mazhen.tech\/mysql-xa\/","datePublished": "2018-06-05T14:44:59+08:00","dateModified": "2018-06-05T14:44:59+08:00","publisher": {
+            "@id": "https:\/\/mazhen.tech\/docker-route-networks\/"
+        },"genre": "posts","keywords": "docker, linux, networking","wordcount":  1197 ,
+        "url": "https:\/\/mazhen.tech\/docker-route-networks\/","datePublished": "2018-11-11T22:00:22+08:00","dateModified": "2018-11-11T22:00:22+08:00","publisher": {
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
@@ -103,10 +103,10 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">关于MySQL XA事务的隔离级别</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Docker跨主机通信路由模式动手实验</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="https://mazhen.tech/" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>mazhen</a></span>&nbsp;<span class="post-category">included in <a href="/categories/tech/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>tech</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-06-05">2018-06-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1558 words&nbsp;
-                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2018-11-11">2018-11-11</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1197 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;3 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="true">
                 <div class="details-summary toc-title">
                     <span>Contents</span>
@@ -114,64 +114,107 @@
                 </div>
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
-    <li><a href="#为什么xa事务建议用serializable隔离级别">为什么XA事务建议用SERIALIZABLE隔离级别</a></li>
-    <li><a href="#serializable性能差有更好的实现方式吗">SERIALIZABLE性能差，有更好的实现方式吗</a></li>
-    <li><a href="#结论">结论</a></li>
+    <li><a href="#路由模式概述">路由模式概述</a></li>
+    <li><a href="#动手实验">动手实验</a></li>
+    <li><a href="#总结">总结</a></li>
   </ul>
 </nav></div>
-            </div><div class="content" id="content"><h2 id="为什么xa事务建议用serializable隔离级别">为什么XA事务建议用SERIALIZABLE隔离级别</h2>
-<p>在MySQL最新的官方文档中，关于<a href="https://dev.mysql.com/doc/refman/8.0/en/xa.html" target="_blank" rel="noopener noreffer ">XA Transactions</a>的介绍有这么一段描述：</p>
-<blockquote>
-<p>As with nondistributed transactions, <code>SERIALIZABLE</code> may be preferred if your applications are sensitive to read phenomena. <code>REPEATABLE READ</code> may not be sufficient for distributed transactions.</p>
-</blockquote>
-<p>这段话表达的意思是，对于分布式XA事务， <code>REPEATABLE READ</code> 隔离级别是不够的。</p>
-<p>MySQL旧版本的<a href="https://docs.oracle.com/cd/E17952_01/mysql-5.0-en/xa.html" target="_blank" rel="noopener noreffer ">文档</a>，对于这个问题表达的更加直接：</p>
-<blockquote>
-<p>However, for a distributed transaction, you must use the <code>SERIALIZABLE</code> isolation level to achieve ACID properties. It is enough to use REPEATABLE READ for a nondistributed transaction, but not for a distributed transaction.</p>
-</blockquote>
-<p>怎么理解呢？举个简单的例子：假设MySQL使用的是<code>REPEATABLE READ</code> 隔离级别，XA事务 <code>T1 </code> 修改的数据涉及两个节点 <code>A</code> 和 <code>B</code>，当事务 <code>T1</code> 在 <code>A</code> 上完成commit，而在 <code>B</code> 上还没commit之前，也就是说这时事务 <code>T1</code> 并没有真正结束，另一个XA事务 <code>T2</code> 已经可以访问到 <code>T1</code> 在 <code>A</code> 上提交后数据，这不是出现脏读了吗？</p>
-<p>那么使用<code>SERIALIZABLE</code>就能保证吗？还是看例子：事务 <code>T1</code> 修改节点 <code>A</code> 上的数据 <code>a -&gt; a'</code>，修改 <code>B</code> 上的数据 <code>b -&gt; b'</code>，在提交阶段，可能被其他事务 <code>T2</code> 读取到了 <code>a'</code>， 因为使用了<code>SERIALIZABLE</code>隔离级别， MySQL 会对所有读加锁，那么 <code>T2</code> 在 <code>B</code> 上读取 <code>b</code> 时会被一直阻塞，直到 <code>T1</code> 在 <code>B</code> 上完成commit，这时 <code>T2</code> 在 <code>B</code> 读取到的就是 <code>b'</code>。 也就是说，<code>SERIALIZABLE</code>隔离级别保证了读到 <code>a'</code> 的事务，不会读到 <code>b</code> ，而是读到 <code>b'</code>，确保了事务ACID的要求。</p>
-<p>更加详细的描述可以参考<a href="https://cloud.tencent.com/developer/article/1005380" target="_blank" rel="noopener noreffer ">鹅厂 TDSQL XA 事务隔离级别的奥秘</a>，他们的结论是：</p>
-<blockquote>
-<p>如果某个并发事务调度机制可以让具有依赖关系的事务构成一个有向无环图(DAG)，那么这个调度就是可串行化的调度。由于每个后端DB都在使用serializable隔离级别，所以每个后端DB上面并发执行的事务分支构成的依赖关系图一定是DAG。</p>
-<p>只要所有连接都是用serializable隔离级别，那么TDSQL XA执行的事务仍然可以达到可串行化隔离级别。</p>
-</blockquote>
-<h2 id="serializable性能差有更好的实现方式吗">SERIALIZABLE性能差，有更好的实现方式吗</h2>
-<p>如果分布式事务想实现<code>read-committed</code>以上的隔离级别，又不想使用<code>SERIALIZABLE</code>，有什么更好的方式吗？</p>
-<p>当然有，想想看<code>TiDB</code>是怎么做的，底层<code>TiKV</code>是一个整体，有全局的MVCC，所以能够做到分布式事务的Snapshot隔离级别。</p>
-<p>PostgreSQL社区中，有<a href="http://postgresxc.wikia.com/wiki/Postgres-XC_Wiki" target="_blank" rel="noopener noreffer ">Postgres-XC</a>和<a href="https://www.postgres-xl.org/" target="_blank" rel="noopener noreffer ">Postgres-XL</a>的方案，采用的并发机制是全局MVCC 和本地写锁。 <code>Postgres-XC</code> 维持了全局活跃事务列表，从而提供全局MVCC。</p>
-<p>虽然MySQL也实现了MVCC，但它没有将底层K/V带有时间戳的版本信息暴露出来。也就是说，多个MySQL实例组成的集群没有全局的MVCC，无法得到全局一致性快照，自然就很难做到分布式的Snapshot隔离级别。腾讯的<a href="https://cloud.tencent.com/developer/article/1005380" target="_blank" rel="noopener noreffer ">这篇文章</a>也分析了这么做比较困难：</p>
-<blockquote>
-<p>由于MySQL innodb使用MVCC做select（除了serializable和for update/lock in share mode子句），还需要将这个全局事务id给予innodb做事务id，同时，还需要TDSQL XA集群的多个set的innodb 共享各自的本地事务状态给所有其他innodb（这也是PGXL 所做的），<strong>任何一个innodb的本地事务的启动，prepare，commit，abort都需要通知给所有其他innodb实例。只有这样做，集群中的每个innodb实例才能够建立全局完全有一致的、当前集群中正在处理的所有事务的状态，以便做多版本并发控制。</strong> 这本身都会造成极大的性能开销，并且导致set之间的严重依赖，降低系统可靠性。这些都是我们要极力避免的。</p>
-</blockquote>
-<h2 id="结论">结论</h2>
-<p>根据上面的分析，如果使用MySQL 的 XA分布式事务，最安全的方式还是按照官方建议，使用<code>SERIALIZABLE</code>隔离级别。</p>
-<p>如果想基于MySQL做改造，实现全局MVCC，从而实现分布式事务的Snapshot隔离级别，目前还没有看到MySQL社区有这类项目，相信实现难度比较大。</p>
+            </div><div class="content" id="content"><p>容器的跨主机通信主要有两种方式：封包模式和路由模式。<a href="./docker-overlay-networks/" rel="">上一篇文章</a>演示了使用<code>VXLAN</code>协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转发实现容器的跨主机通信。</p>
+<h2 id="路由模式概述">路由模式概述</h2>
+<p>宿主机将它负责的容器IP网段，以某种方式告诉其他节点，然后每个节点根据收到的<code>&lt;宿主机-容器IP网段&gt;</code>映射关系，配置本机路由表。</p>
+<p>这样对于容器间跨节点的IP包，就可以根据本机路由表获得到达目的容器的网关地址，即目的容器所在的宿主机地址。接着在把IP包封装成二层网络数据帧时，将目的MAC地址设置为网关的MAC地址，IP包就可以通过二层网络送达目的容器所在的宿主机。</p>
+<p>至于用什么方式将<code>&lt;宿主机-容器IP网段&gt;</code>映射关系发布出去，不同的项目采用了不同的实现方案。</p>
+<p><a href="https://github.com/coreos/flannel" target="_blank" rel="noopener noreffer ">Flannel</a>是将这些信息集中存储在<a href="https://github.com/etcd-io/etcd" target="_blank" rel="noopener noreffer ">etcd</a>中，每个节点从<a href="https://github.com/etcd-io/etcd" target="_blank" rel="noopener noreffer ">etcd</a>自动获取数据，更新宿主机路由表。</p>
+<p><a href="https://github.com/projectcalico/calico/" target="_blank" rel="noopener noreffer ">Calico</a>则使用<a href="https://en.wikipedia.org/wiki/Border_Gateway_Protocol" target="_blank" rel="noopener noreffer ">BGP</a>（Border Gateway Protocol）协议交换共享路由信息，每个宿主机都是运行在它之上的容器的<code>边界网关</code>。</p>
+<p>如果宿主机之间跨了网段怎么办？宿主机之间的二层网络不通，虽然知道目的容器所在的宿主机，但没办法将目的MAC地址设置为那台宿主机的MAC地址。</p>
+<p><code>Calico</code>有两种解决方案：</p>
+<ul>
+<li>IPIP 模式，在跨网段的宿主机之间建立“隧道”</li>
+<li>让宿主机之间的路由器“学习”到容器路由规则，每个路由器都知道某个容器IP网段是哪个宿主机负责的，容器间的IP包就能正常路由了。</li>
+</ul>
+<h2 id="动手实验">动手实验</h2>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://cdn.mazhen.tech//images/202207112201327.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207112201327.png, https://cdn.mazhen.tech//images/202207112201327.png 1.5x, https://cdn.mazhen.tech//images/202207112201327.png 2x"
+        data-sizes="auto"
+        alt="https://cdn.mazhen.tech//images/202207112201327.png"
+        title="route" /></p>
+<p>路由模式的实验比较简单，关键在于宿主机上路由规则的配置。为了简化实验，这些路由规则都是我们手工配置，而且两个节点之间二层网络互通，没有跨网段。</p>
+<p>参照<a href="./docker-overlay-networks.md" rel="">Docker跨主机Overlay网络动手实验</a>，创建“容器”，<code>veth pairs</code>，<code>bridge</code>，设置IP，激活虚拟设备。</p>
+<p>然后在<code>node-1</code>上增加路由规则：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip route add 172.18.20.0/24 via 192.168.31.192
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在<code>node-2</code>上增加路由规则：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sudo ip route add 172.18.10.0/24 via 192.168.31.183
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当<code>docker1</code>访问<code>docker2</code>时，IP包会从<code>veth</code>到达<code>br0</code>，然后根据<code>node-1</code>上刚设置的路由规则，访问<code>172.18.20.0/24</code>网段的网关地址为<code>node-2</code>，这样，IP包就能路由到<code>node-2</code>了。</p>
+<p>同时，<code>node-2</code>的路由表中包含这样的一条规则：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ ip route
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">...
+</span></span><span class="line"><span class="cl">172.18.20.0/24 dev br0 proto kernel scope link src 172.18.20.1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>到达<code>node-2</code>的IP包，会根据这条规则路由到网桥<code>br0</code>，最终到达<code>docker-2</code>。反过来从<code>docker2</code>访问<code>docker1</code>的过程也是类似。</p>
+<h2 id="总结">总结</h2>
+<p>两种容器跨主机的通信方案我们都实验了一下，现在做个简单总结对比：</p>
+<ul>
+<li><strong>封包模式</strong>对基础设施要求低，三层网络通就可以了。但封包、解包带来的性能损耗较大。</li>
+<li><strong>路由模式</strong>性能好，但要求二层网络连通，或者在跨网段的情况下，要求路由器能配合“学习”路由规则。</li>
+</ul>
+<p>至此，容器网络的三篇系列完成：</p>
+<ul>
+<li><a href="./docker-network-bridge/" rel="">Docker单机网络模型动手实验</a></li>
+<li><a href="./docker-overlay-networks/" rel="">Docker跨主机Overlay网络动手实验</a></li>
+<li>Docker跨主机通信路由模式动手实验（本篇）</li>
+</ul>
 </div><div class="post-footer" id="post-footer">
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2018-06-05</span>
+                <span>Updated on 2018-11-11</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"><span>
-                            <a class="link-to-markdown" href="/mysql-xa/index.md" target="_blank">Read Markdown</a>
+                            <a class="link-to-markdown" href="/docker-route-networks/index.md" target="_blank">Read Markdown</a>
                         </span></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/mysql-xa/" data-title="关于MySQL XA事务的隔离级别" data-via="mazhen" data-hashtags="db"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/mysql-xa/" data-hashtag="db"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/mysql-xa/" data-title="关于MySQL XA事务的隔离级别"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/mysql-xa/" data-title="关于MySQL XA事务的隔离级别"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://mazhen.tech/docker-route-networks/" data-title="Docker跨主机通信路由模式动手实验" data-via="mazhen" data-hashtags="docker,linux,networking"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://mazhen.tech/docker-route-networks/" data-hashtag="docker"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://mazhen.tech/docker-route-networks/" data-title="Docker跨主机通信路由模式动手实验"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on 微博" data-sharer="weibo" data-url="https://mazhen.tech/docker-route-networks/" data-title="Docker跨主机通信路由模式动手实验"><i class="fab fa-weibo fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
 
     <div class="post-info-more">
-        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/db/">db</a></section>
+        <section class="post-tags"><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;<a href="/tags/docker/">docker</a>,&nbsp;<a href="/tags/linux/">linux</a>,&nbsp;<a href="/tags/networking/">networking</a></section>
         <section>
             <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
         </section>
     </div>
 
-    <div class="post-nav"><a href="/radondb/" class="prev" rel="prev" title="从RadonDB看新型数据库中间件的特性"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>从RadonDB看新型数据库中间件的特性</a>
-            <a href="/rdbms-fundamental/" class="next" rel="next" title="关系数据库查询处理基础知识扫盲">关系数据库查询处理基础知识扫盲<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+    <div class="post-nav"><a href="/docker-overlay-networks/" class="prev" rel="prev" title="Docker跨主机Overlay网络动手实验"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Docker跨主机Overlay网络动手实验</a>
+            <a href="/container-innovation/" class="next" rel="next" title="Container Innovation">Container Innovation<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
 </div>
 </article></div>
             </main><footer class="footer">

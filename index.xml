@@ -4,9 +4,41 @@
         <link>https://mazhen.tech/</link>
         <description>mazhen 的技术站点</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</lastBuildDate>
+            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 16 Dec 2018 22:03:21 &#43;0800</lastBuildDate>
             <atom:link href="https://mazhen.tech/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>Container Innovation</title>
+    <link>https://mazhen.tech/container-innovation/</link>
+    <pubDate>Sun, 16 Dec 2018 22:03:21 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/container-innovation/</guid>
+    <description><![CDATA[Kubernetes在2017年赢得了容器编排之战，使得基于容器+Kubernetes来构建PaaS平台成为了云计算的主流方式。在人们把关注]]></description>
+</item>
+<item>
+    <title>Docker跨主机通信路由模式动手实验</title>
+    <link>https://mazhen.tech/docker-route-networks/</link>
+    <pubDate>Sun, 11 Nov 2018 22:00:22 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/docker-route-networks/</guid>
+    <description><![CDATA[容器的跨主机通信主要有两种方式：封包模式和路由模式。上一篇文章演示了使用VXLAN协议的封包模式，这篇将介绍另一种方式，利用三层网络的路由转]]></description>
+</item>
+<item>
+    <title>Docker跨主机Overlay网络动手实验</title>
+    <link>https://mazhen.tech/docker-overlay-networks/</link>
+    <pubDate>Wed, 07 Nov 2018 21:52:36 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/docker-overlay-networks/</guid>
+    <description><![CDATA[上一篇文章我演示了docker bridge网络模型的实验，这次我将展示如何利用Overlay 网络实现跨主机容器的通信。 两个容器docker1]]></description>
+</item>
+<item>
+    <title>Docker单机网络模型动手实验</title>
+    <link>https://mazhen.tech/docker-network-bridge/</link>
+    <pubDate>Fri, 26 Oct 2018 21:40:03 &#43;0800</pubDate>
+    <author>mazhen</author>
+    <guid>https://mazhen.tech/docker-network-bridge/</guid>
+    <description><![CDATA[容器的本质 容器的本质就是一个进程，只不过对它进行了Linux Namesapce隔离，让它看不到外面的世界，用Cgroups限制了它能使用的资]]></description>
+</item>
+<item>
     <title>关系数据库查询处理基础知识扫盲</title>
     <link>https://mazhen.tech/rdbms-fundamental/</link>
     <pubDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</pubDate>
@@ -53,38 +85,6 @@
     <author>mazhen</author>
     <guid>https://mazhen.tech/sql-parser/</guid>
     <description><![CDATA[PingCAP发布了TiDB的源码阅读系列文章，让我们可以比较系统的去学习了解TiDB的内部实现。最近的一篇《SQL 的一生》，从整体上讲解了]]></description>
-</item>
-<item>
-    <title>基于代价优化（CBO）实现代码导读</title>
-    <link>https://mazhen.tech/cbo-guide/</link>
-    <pubDate>Tue, 08 May 2018 14:40:17 &#43;0800</pubDate>
-    <author>mazhen</author>
-    <guid>https://mazhen.tech/cbo-guide/</guid>
-    <description><![CDATA[配合这篇《基于代价的优化》 阅读。 CBO的整体思路是：从逻辑查询计划树，自上而下枚举每个逻辑运算符可能的物理算子，从所有可能的执行路径中选择一]]></description>
-</item>
-<item>
-    <title>Golang error处理实践</title>
-    <link>https://mazhen.tech/golang-error-handling/</link>
-    <pubDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</pubDate>
-    <author>mazhen</author>
-    <guid>https://mazhen.tech/golang-error-handling/</guid>
-    <description><![CDATA[Go的错误处理机制很简洁，使用errors.New(text)创建 error，方法的调用者一般按照如下模式处理： 1 2 3 if err != nil { return err } 这样做]]></description>
-</item>
-<item>
-    <title>Go语言的引用类型</title>
-    <link>https://mazhen.tech/go-reference-types/</link>
-    <pubDate>Mon, 05 Mar 2018 14:20:18 &#43;0800</pubDate>
-    <author>mazhen</author>
-    <guid>https://mazhen.tech/go-reference-types/</guid>
-    <description><![CDATA[Go中的引用类型不是指针，而是对指针的包装，在它的内部通过指针引用底层数据结构。每一种引用类型也包含一些其他的field，用来管理底层的数据]]></description>
-</item>
-<item>
-    <title>利用docker compose在单机上玩转TiDB</title>
-    <link>https://mazhen.tech/tidb-docker-compose/</link>
-    <pubDate>Fri, 09 Feb 2018 14:32:20 &#43;0800</pubDate>
-    <author>mazhen</author>
-    <guid>https://mazhen.tech/tidb-docker-compose/</guid>
-    <description><![CDATA[TiDB提供了docker compose的部署方式，可以很方便的在单机上搭建一个TiDB集群作为开发测试环境。如果修改了TiDB源码，可以使]]></description>
 </item>
 </channel>
 </rss>
