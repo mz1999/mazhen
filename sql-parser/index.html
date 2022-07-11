@@ -123,11 +123,11 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png"
-        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png 2x"
+        data-src="https://cdn.mazhen.tech//images/202207011436753.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207011436753.png, https://cdn.mazhen.tech//images/202207011436753.png 1.5x, https://cdn.mazhen.tech//images/202207011436753.png 2x"
         data-sizes="auto"
-        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png"
-        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436753.png" /></p>
+        alt="https://cdn.mazhen.tech//images/202207011436753.png"
+        title="https://cdn.mazhen.tech//images/202207011436753.png" /></p>
 <p>其中，<code>SQL Parser</code>的功能是把SQL语句按照SQL语法规则进行解析，将文本转换成抽象语法树（<code>AST</code>），这部分功能需要些背景知识才能比较容易理解，我尝试做下相关知识的介绍，希望能对读懂这部分代码有点帮助。</p>
 <p>TiDB是使用<a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a>根据预定义的SQL语法规则文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>生成SQL语法解析器。我们可以在TiDB的<a href="https://github.com/pingcap/tidb/blob/50e98f427e7943396dbe38d23178b9f9dc5398b7/Makefile#L50" target="_blank" rel="noopener noreffer ">Makefile</a>文件中看到这个过程，先build <code>goyacc</code>工具，然后使用<code>goyacc</code>根据<code>parser.y</code>生成解析器<code>parser.go</code>：</p>
 <div class="highlight"><div class="chroma">
@@ -141,11 +141,11 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">goyacc:
-</span></span><span class="line"><span class="cl">	$(GOBUILD) -o bin/goyacc parser/goyacc/main.go
+</span></span><span class="line"><span class="cl"> $(GOBUILD) -o bin/goyacc parser/goyacc/main.go
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">parser: goyacc
-</span></span><span class="line"><span class="cl">	bin/goyacc -o /dev/null parser/parser.y
-</span></span><span class="line"><span class="cl">	bin/goyacc -o parser/parser.go parser/parser.y 2&gt;&amp;1 ...
+</span></span><span class="line"><span class="cl"> bin/goyacc -o /dev/null parser/parser.y
+</span></span><span class="line"><span class="cl"> bin/goyacc -o parser/parser.go parser/parser.y 2&gt;&amp;1 ...
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p><a href="https://github.com/cznic/goyacc" target="_blank" rel="noopener noreffer ">goyacc</a>是<a href="http://dinosaur.compilertools.net/" target="_blank" rel="noopener noreffer ">yacc</a>的Golang版，所以要想看懂语法规则定义文件<a href="https://github.com/pingcap/tidb/blob/master/parser/parser.y" target="_blank" rel="noopener noreffer ">parser.y</a>，了解解析器是如何工作的，先要对<a href="http://dinosaur.compilertools.net/" target="_blank" rel="noopener noreffer ">Lex &amp; Yacc</a>有些了解。</p>
@@ -154,11 +154,11 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png"
-        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png 2x"
+        data-src="https://cdn.mazhen.tech//images/202207011436897.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207011436897.png, https://cdn.mazhen.tech//images/202207011436897.png 1.5x, https://cdn.mazhen.tech//images/202207011436897.png 2x"
         data-sizes="auto"
-        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png"
-        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011436897.png" /></p>
+        alt="https://cdn.mazhen.tech//images/202207011436897.png"
+        title="https://cdn.mazhen.tech//images/202207011436897.png" /></p>
 <p>上图描述了使用<code>Lex &amp; Yacc</code>构建编译器的流程。<code>Lex</code>根据用户定义的<code>patterns</code>生成词法分析器。词法分析器读取源代码，根据<code>patterns</code>将源代码转换成<code>tokens</code>输出。<code>Yacc</code>根据用户定义的语法规则生成语法分析器。语法分析器以词法分析器输出的<code>tokens</code>作为输入，根据语法规则创建出语法树。最后对语法树遍历生成输出结果，结果可以是产生机器代码，或者是边遍历 <code>AST</code> 边解释执行。</p>
 <p>从上面的流程可以看出，用户需要分别为<code>Lex</code>提供<code>patterns</code>的定义，为 <code>Yacc</code> 提供语法规则文件，<code>Lex &amp; Yacc</code> 根据用户提供的输入文件，生成符合他们需求的词法分析器和语法分析器。这两种配置都是文本文件，并且结构相同：</p>
 <div class="highlight"><div class="chroma">
@@ -429,8 +429,8 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yyLexer interface {
-</span></span><span class="line"><span class="cl">	Lex(lval *yySymType) int
-</span></span><span class="line"><span class="cl">	Error(e string)
+</span></span><span class="line"><span class="cl"> Lex(lval *yySymType) int
+</span></span><span class="line"><span class="cl"> Error(e string)
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -445,9 +445,9 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yyLexerEx interface {
-</span></span><span class="line"><span class="cl">	yyLexer
-</span></span><span class="line"><span class="cl">	// Hook for recording a reduction.
-</span></span><span class="line"><span class="cl">	Reduced(rule, state int, lval *yySymType) (stop bool) // Client should copy *lval.
+</span></span><span class="line"><span class="cl"> yyLexer
+</span></span><span class="line"><span class="cl"> // Hook for recording a reduction.
+</span></span><span class="line"><span class="cl"> Reduced(rule, state int, lval *yySymType) (stop bool) // Client should copy *lval.
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -488,16 +488,16 @@
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">...
 </span></span><span class="line"><span class="cl">// Scanner implements the yyLexer interface.
 </span></span><span class="line"><span class="cl">type Scanner struct {
-</span></span><span class="line"><span class="cl">	r   reader
-</span></span><span class="line"><span class="cl">	buf bytes.Buffer
+</span></span><span class="line"><span class="cl"> r   reader
+</span></span><span class="line"><span class="cl"> buf bytes.Buffer
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	errs         []error
-</span></span><span class="line"><span class="cl">	stmtStartPos int
+</span></span><span class="line"><span class="cl"> errs         []error
+</span></span><span class="line"><span class="cl"> stmtStartPos int
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	// For scanning such kind of comment: /*! MySQL-specific code */ or /*+ optimizer hint */
-</span></span><span class="line"><span class="cl">	specialComment specialCommentScanner
+</span></span><span class="line"><span class="cl"> // For scanning such kind of comment: /*! MySQL-specific code */ or /*+ optimizer hint */
+</span></span><span class="line"><span class="cl"> specialComment specialCommentScanner
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	sqlMode mysql.SQLMode
+</span></span><span class="line"><span class="cl"> sqlMode mysql.SQLMode
 </span></span><span class="line"><span class="cl">}
 </span></span><span class="line"><span class="cl">// Lex returns a token and store the token value in v.
 </span></span><span class="line"><span class="cl">// Scanner satisfies yyLexer interface.
@@ -505,14 +505,14 @@
 </span></span><span class="line"><span class="cl">// return 0 tells parser that scanner meets EOF,
 </span></span><span class="line"><span class="cl">// return invalid tells parser that scanner meets illegal character.
 </span></span><span class="line"><span class="cl">func (s *Scanner) Lex(v *yySymType) int {
-</span></span><span class="line"><span class="cl">	tok, pos, lit := s.scan()
-</span></span><span class="line"><span class="cl">	v.offset = pos.Offset
-</span></span><span class="line"><span class="cl">	v.ident = lit
-</span></span><span class="line"><span class="cl">	...
+</span></span><span class="line"><span class="cl"> tok, pos, lit := s.scan()
+</span></span><span class="line"><span class="cl"> v.offset = pos.Offset
+</span></span><span class="line"><span class="cl"> v.ident = lit
+</span></span><span class="line"><span class="cl"> ...
 </span></span><span class="line"><span class="cl">}
 </span></span><span class="line"><span class="cl">// Errors returns the errors during a scan.
 </span></span><span class="line"><span class="cl">func (s *Scanner) Errors() []error {
-</span></span><span class="line"><span class="cl">	return s.errs
+</span></span><span class="line"><span class="cl"> return s.errs
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -550,11 +550,11 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">%union {
-</span></span><span class="line"><span class="cl">	offset int // offset
-</span></span><span class="line"><span class="cl">	item interface{}
-</span></span><span class="line"><span class="cl">	ident string
-</span></span><span class="line"><span class="cl">	expr ast.ExprNode
-</span></span><span class="line"><span class="cl">	statement ast.StmtNode
+</span></span><span class="line"><span class="cl"> offset int // offset
+</span></span><span class="line"><span class="cl"> item interface{}
+</span></span><span class="line"><span class="cl"> ident string
+</span></span><span class="line"><span class="cl"> expr ast.ExprNode
+</span></span><span class="line"><span class="cl"> statement ast.StmtNode
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -575,12 +575,12 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type yySymType struct {
-</span></span><span class="line"><span class="cl">	yys       int
-</span></span><span class="line"><span class="cl">	offset    int // offset
-</span></span><span class="line"><span class="cl">	item      interface{}
-</span></span><span class="line"><span class="cl">	ident     string
-</span></span><span class="line"><span class="cl">	expr      ast.ExprNode
-</span></span><span class="line"><span class="cl">	statement ast.StmtNode
+</span></span><span class="line"><span class="cl"> yys       int
+</span></span><span class="line"><span class="cl"> offset    int // offset
+</span></span><span class="line"><span class="cl"> item      interface{}
+</span></span><span class="line"><span class="cl"> ident     string
+</span></span><span class="line"><span class="cl"> expr      ast.ExprNode
+</span></span><span class="line"><span class="cl"> statement ast.StmtNode
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -599,9 +599,9 @@
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// Node is the basic element of the AST.
 </span></span><span class="line"><span class="cl">// Interfaces embed Node should have &#39;Node&#39; name suffix.
 </span></span><span class="line"><span class="cl">type Node interface {
-</span></span><span class="line"><span class="cl">	Accept(v Visitor) (node Node, ok bool)
-</span></span><span class="line"><span class="cl">	Text() string
-</span></span><span class="line"><span class="cl">	SetText(text string)
+</span></span><span class="line"><span class="cl"> Accept(v Visitor) (node Node, ok bool)
+</span></span><span class="line"><span class="cl"> Text() string
+</span></span><span class="line"><span class="cl"> SetText(text string)
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -617,8 +617,8 @@
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">// Visitor visits a Node.
 </span></span><span class="line"><span class="cl">type Visitor interface {
-</span></span><span class="line"><span class="cl">	Enter(n Node) (node Node, skipChildren bool)
-</span></span><span class="line"><span class="cl">	Leave(n Node) (node Node, ok bool)
+</span></span><span class="line"><span class="cl"> Enter(n Node) (node Node, skipChildren bool)
+</span></span><span class="line"><span class="cl"> Leave(n Node) (node Node, ok bool)
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -690,65 +690,65 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/* 这部分的token是 ident类型 */
-</span></span><span class="line"><span class="cl">%token	&lt;ident&gt;
+</span></span><span class="line"><span class="cl">%token &lt;ident&gt;
 </span></span><span class="line"><span class="cl">    ...
-</span></span><span class="line"><span class="cl">	add			&#34;ADD&#34;
-</span></span><span class="line"><span class="cl">	all 			&#34;ALL&#34;
-</span></span><span class="line"><span class="cl">	alter			&#34;ALTER&#34;
-</span></span><span class="line"><span class="cl">	analyze			&#34;ANALYZE&#34;
-</span></span><span class="line"><span class="cl">	and			&#34;AND&#34;
-</span></span><span class="line"><span class="cl">	as			&#34;AS&#34;
-</span></span><span class="line"><span class="cl">	asc			&#34;ASC&#34;
-</span></span><span class="line"><span class="cl">	between			&#34;BETWEEN&#34;
-</span></span><span class="line"><span class="cl">	bigIntType		&#34;BIGINT&#34;
+</span></span><span class="line"><span class="cl"> add   &#34;ADD&#34;
+</span></span><span class="line"><span class="cl"> all    &#34;ALL&#34;
+</span></span><span class="line"><span class="cl"> alter   &#34;ALTER&#34;
+</span></span><span class="line"><span class="cl"> analyze   &#34;ANALYZE&#34;
+</span></span><span class="line"><span class="cl"> and   &#34;AND&#34;
+</span></span><span class="line"><span class="cl"> as   &#34;AS&#34;
+</span></span><span class="line"><span class="cl"> asc   &#34;ASC&#34;
+</span></span><span class="line"><span class="cl"> between   &#34;BETWEEN&#34;
+</span></span><span class="line"><span class="cl"> bigIntType  &#34;BIGINT&#34;
 </span></span><span class="line"><span class="cl">    ...
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">/* 这部分的token是 item 类型 */   
-</span></span><span class="line"><span class="cl">%token	&lt;item&gt;
-</span></span><span class="line"><span class="cl">    /*yy:token &#34;1.%d&#34;   */	floatLit        &#34;floating-point literal&#34;
-</span></span><span class="line"><span class="cl">	/*yy:token &#34;1.%d&#34;   */	decLit          &#34;decimal literal&#34;
-</span></span><span class="line"><span class="cl">	/*yy:token &#34;%d&#34;     */	intLit          &#34;integer literal&#34;
-</span></span><span class="line"><span class="cl">	/*yy:token &#34;%x&#34;     */	hexLit          &#34;hexadecimal literal&#34;
-</span></span><span class="line"><span class="cl">	/*yy:token &#34;%b&#34;     */	bitLit          &#34;bit literal&#34;
+</span></span><span class="line"><span class="cl">%token &lt;item&gt;
+</span></span><span class="line"><span class="cl">    /*yy:token &#34;1.%d&#34;   */ floatLit        &#34;floating-point literal&#34;
+</span></span><span class="line"><span class="cl"> /*yy:token &#34;1.%d&#34;   */ decLit          &#34;decimal literal&#34;
+</span></span><span class="line"><span class="cl"> /*yy:token &#34;%d&#34;     */ intLit          &#34;integer literal&#34;
+</span></span><span class="line"><span class="cl"> /*yy:token &#34;%x&#34;     */ hexLit          &#34;hexadecimal literal&#34;
+</span></span><span class="line"><span class="cl"> /*yy:token &#34;%b&#34;     */ bitLit          &#34;bit literal&#34;
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	andnot		&#34;&amp;^&#34;
-</span></span><span class="line"><span class="cl">	assignmentEq	&#34;:=&#34;
-</span></span><span class="line"><span class="cl">	eq		&#34;=&#34;
-</span></span><span class="line"><span class="cl">	ge		&#34;&gt;=&#34;
+</span></span><span class="line"><span class="cl"> andnot  &#34;&amp;^&#34;
+</span></span><span class="line"><span class="cl"> assignmentEq &#34;:=&#34;
+</span></span><span class="line"><span class="cl"> eq  &#34;=&#34;
+</span></span><span class="line"><span class="cl"> ge  &#34;&gt;=&#34;
 </span></span><span class="line"><span class="cl">    ...
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">/* 非终结符按照类型分别定义 */
-</span></span><span class="line"><span class="cl">%type	&lt;expr&gt;
-</span></span><span class="line"><span class="cl">    Expression			&#34;expression&#34;
-</span></span><span class="line"><span class="cl">	BoolPri				&#34;boolean primary expression&#34;
-</span></span><span class="line"><span class="cl">	ExprOrDefault			&#34;expression or default&#34;
-</span></span><span class="line"><span class="cl">	PredicateExpr			&#34;Predicate expression factor&#34;
-</span></span><span class="line"><span class="cl">	SetExpr				&#34;Set variable statement value&#39;s expression&#34;
+</span></span><span class="line"><span class="cl">%type &lt;expr&gt;
+</span></span><span class="line"><span class="cl">    Expression   &#34;expression&#34;
+</span></span><span class="line"><span class="cl"> BoolPri    &#34;boolean primary expression&#34;
+</span></span><span class="line"><span class="cl"> ExprOrDefault   &#34;expression or default&#34;
+</span></span><span class="line"><span class="cl"> PredicateExpr   &#34;Predicate expression factor&#34;
+</span></span><span class="line"><span class="cl"> SetExpr    &#34;Set variable statement value&#39;s expression&#34;
 </span></span><span class="line"><span class="cl">    ...
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">%type	&lt;statement&gt;
-</span></span><span class="line"><span class="cl">	AdminStmt			&#34;Check table statement or show ddl statement&#34;
-</span></span><span class="line"><span class="cl">	AlterTableStmt			&#34;Alter table statement&#34;
-</span></span><span class="line"><span class="cl">	AlterUserStmt			&#34;Alter user statement&#34;
-</span></span><span class="line"><span class="cl">	AnalyzeTableStmt		&#34;Analyze table statement&#34;
-</span></span><span class="line"><span class="cl">	BeginTransactionStmt		&#34;BEGIN TRANSACTION statement&#34;
-</span></span><span class="line"><span class="cl">	BinlogStmt			&#34;Binlog base64 statement&#34;
+</span></span><span class="line"><span class="cl">%type &lt;statement&gt;
+</span></span><span class="line"><span class="cl"> AdminStmt   &#34;Check table statement or show ddl statement&#34;
+</span></span><span class="line"><span class="cl"> AlterTableStmt   &#34;Alter table statement&#34;
+</span></span><span class="line"><span class="cl"> AlterUserStmt   &#34;Alter user statement&#34;
+</span></span><span class="line"><span class="cl"> AnalyzeTableStmt  &#34;Analyze table statement&#34;
+</span></span><span class="line"><span class="cl"> BeginTransactionStmt  &#34;BEGIN TRANSACTION statement&#34;
+</span></span><span class="line"><span class="cl"> BinlogStmt   &#34;Binlog base64 statement&#34;
 </span></span><span class="line"><span class="cl">    ...
-</span></span><span class="line"><span class="cl">	
+</span></span><span class="line"><span class="cl"> 
 </span></span><span class="line"><span class="cl">%type   &lt;item&gt;
-</span></span><span class="line"><span class="cl">	AlterTableOptionListOpt		&#34;alter table option list opt&#34;
-</span></span><span class="line"><span class="cl">	AlterTableSpec			&#34;Alter table specification&#34;
-</span></span><span class="line"><span class="cl">	AlterTableSpecList		&#34;Alter table specification list&#34;
-</span></span><span class="line"><span class="cl">	AnyOrAll			&#34;Any or All for subquery&#34;
-</span></span><span class="line"><span class="cl">	Assignment			&#34;assignment&#34;
+</span></span><span class="line"><span class="cl"> AlterTableOptionListOpt  &#34;alter table option list opt&#34;
+</span></span><span class="line"><span class="cl"> AlterTableSpec   &#34;Alter table specification&#34;
+</span></span><span class="line"><span class="cl"> AlterTableSpecList  &#34;Alter table specification list&#34;
+</span></span><span class="line"><span class="cl"> AnyOrAll   &#34;Any or All for subquery&#34;
+</span></span><span class="line"><span class="cl"> Assignment   &#34;assignment&#34;
 </span></span><span class="line"><span class="cl">    ...
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">%type	&lt;ident&gt;
-</span></span><span class="line"><span class="cl">	KeyOrIndex		&#34;{KEY|INDEX}&#34;
-</span></span><span class="line"><span class="cl">	ColumnKeywordOpt	&#34;Column keyword or empty&#34;
-</span></span><span class="line"><span class="cl">	PrimaryOpt		&#34;Optional primary keyword&#34;
-</span></span><span class="line"><span class="cl">	NowSym			&#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP&#34;
-</span></span><span class="line"><span class="cl">	NowSymFunc		&#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP/NOW&#34;
+</span></span><span class="line"><span class="cl">%type &lt;ident&gt;
+</span></span><span class="line"><span class="cl"> KeyOrIndex  &#34;{KEY|INDEX}&#34;
+</span></span><span class="line"><span class="cl"> ColumnKeywordOpt &#34;Column keyword or empty&#34;
+</span></span><span class="line"><span class="cl"> PrimaryOpt  &#34;Optional primary keyword&#34;
+</span></span><span class="line"><span class="cl"> NowSym   &#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP&#34;
+</span></span><span class="line"><span class="cl"> NowSymFunc  &#34;CURRENT_TIMESTAMP/LOCALTIME/LOCALTIMESTAMP/NOW&#34;
 </span></span><span class="line"><span class="cl">    ...
 </span></span></code></pre></td></tr></table>
 </div>
@@ -778,10 +778,10 @@
 </span></span><span class="line"><span class="cl">%precedence stringLit
 </span></span><span class="line"><span class="cl">...
 </span></span><span class="line"><span class="cl">%right   assignmentEq
-</span></span><span class="line"><span class="cl">%left 	pipes or pipesAsOr
-</span></span><span class="line"><span class="cl">%left 	xor
-</span></span><span class="line"><span class="cl">%left 	andand and
-</span></span><span class="line"><span class="cl">%left 	between
+</span></span><span class="line"><span class="cl">%left  pipes or pipesAsOr
+</span></span><span class="line"><span class="cl">%left  xor
+</span></span><span class="line"><span class="cl">%left  andand and
+</span></span><span class="line"><span class="cl">%left  between
 </span></span><span class="line"><span class="cl">...
 </span></span></code></pre></td></tr></table>
 </div>
@@ -854,13 +854,13 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">SelectStmt:
-</span></span><span class="line"><span class="cl">	&#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList OrderByOptional SelectStmtLimit SelectLockOpt
+</span></span><span class="line"><span class="cl"> &#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList OrderByOptional SelectStmtLimit SelectLockOpt
 </span></span><span class="line"><span class="cl">    { ... }
 </span></span><span class="line"><span class="cl">|   &#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList FromDual WhereClauseOptional SelectStmtLimit SelectLockOpt
 </span></span><span class="line"><span class="cl">    { ... }  
 </span></span><span class="line"><span class="cl">|   &#34;SELECT&#34; SelectStmtOpts SelectStmtFieldList &#34;FROM&#34;
-</span></span><span class="line"><span class="cl">	TableRefsClause WhereClauseOptional SelectStmtGroup HavingClause OrderByOptional
-</span></span><span class="line"><span class="cl">	SelectStmtLimit SelectLockOpt
+</span></span><span class="line"><span class="cl"> TableRefsClause WhereClauseOptional SelectStmtGroup HavingClause OrderByOptional
+</span></span><span class="line"><span class="cl"> SelectStmtLimit SelectLockOpt
 </span></span><span class="line"><span class="cl">    { ... } 
 </span></span></code></pre></td></tr></table>
 </div>
@@ -898,31 +898,31 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">type SelectStmt struct {
-</span></span><span class="line"><span class="cl">	dmlNode
-</span></span><span class="line"><span class="cl">	resultSetNode
+</span></span><span class="line"><span class="cl"> dmlNode
+</span></span><span class="line"><span class="cl"> resultSetNode
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	// SelectStmtOpts wraps around select hints and switches.
-</span></span><span class="line"><span class="cl">	*SelectStmtOpts
-</span></span><span class="line"><span class="cl">	// Distinct represents whether the select has distinct option.
-</span></span><span class="line"><span class="cl">	Distinct bool
-</span></span><span class="line"><span class="cl">	// From is the from clause of the query.
-</span></span><span class="line"><span class="cl">	From *TableRefsClause
-</span></span><span class="line"><span class="cl">	// Where is the where clause in select statement.
-</span></span><span class="line"><span class="cl">	Where ExprNode
-</span></span><span class="line"><span class="cl">	// Fields is the select expression list.
-</span></span><span class="line"><span class="cl">	Fields *FieldList
-</span></span><span class="line"><span class="cl">	// GroupBy is the group by expression list.
-</span></span><span class="line"><span class="cl">	GroupBy *GroupByClause
-</span></span><span class="line"><span class="cl">	// Having is the having condition.
-</span></span><span class="line"><span class="cl">	Having *HavingClause
-</span></span><span class="line"><span class="cl">	// OrderBy is the ordering expression list.
-</span></span><span class="line"><span class="cl">	OrderBy *OrderByClause
-</span></span><span class="line"><span class="cl">	// Limit is the limit clause.
-</span></span><span class="line"><span class="cl">	Limit *Limit
-</span></span><span class="line"><span class="cl">	// LockTp is the lock type
-</span></span><span class="line"><span class="cl">	LockTp SelectLockType
-</span></span><span class="line"><span class="cl">	// TableHints represents the level Optimizer Hint
-</span></span><span class="line"><span class="cl">	TableHints []*TableOptimizerHint
+</span></span><span class="line"><span class="cl"> // SelectStmtOpts wraps around select hints and switches.
+</span></span><span class="line"><span class="cl"> *SelectStmtOpts
+</span></span><span class="line"><span class="cl"> // Distinct represents whether the select has distinct option.
+</span></span><span class="line"><span class="cl"> Distinct bool
+</span></span><span class="line"><span class="cl"> // From is the from clause of the query.
+</span></span><span class="line"><span class="cl"> From *TableRefsClause
+</span></span><span class="line"><span class="cl"> // Where is the where clause in select statement.
+</span></span><span class="line"><span class="cl"> Where ExprNode
+</span></span><span class="line"><span class="cl"> // Fields is the select expression list.
+</span></span><span class="line"><span class="cl"> Fields *FieldList
+</span></span><span class="line"><span class="cl"> // GroupBy is the group by expression list.
+</span></span><span class="line"><span class="cl"> GroupBy *GroupByClause
+</span></span><span class="line"><span class="cl"> // Having is the having condition.
+</span></span><span class="line"><span class="cl"> Having *HavingClause
+</span></span><span class="line"><span class="cl"> // OrderBy is the ordering expression list.
+</span></span><span class="line"><span class="cl"> OrderBy *OrderByClause
+</span></span><span class="line"><span class="cl"> // Limit is the limit clause.
+</span></span><span class="line"><span class="cl"> Limit *Limit
+</span></span><span class="line"><span class="cl"> // LockTp is the lock type
+</span></span><span class="line"><span class="cl"> LockTp SelectLockType
+</span></span><span class="line"><span class="cl"> // TableHints represents the level Optimizer Hint
+</span></span><span class="line"><span class="cl"> TableHints []*TableOptimizerHint
 </span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
@@ -996,38 +996,38 @@
 <pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
-</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
-</span></span><span class="line"><span class="cl">	<span class="s">&#34;github.com/pingcap/tidb/parser&#34;</span>
-</span></span><span class="line"><span class="cl">	<span class="s">&#34;github.com/pingcap/tidb/ast&#34;</span>
+</span></span><span class="line"><span class="cl"> <span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl"> <span class="s">&#34;github.com/pingcap/tidb/parser&#34;</span>
+</span></span><span class="line"><span class="cl"> <span class="s">&#34;github.com/pingcap/tidb/ast&#34;</span>
 </span></span><span class="line"><span class="cl"><span class="p">)</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">visitor</span> <span class="kd">struct</span><span class="p">{}</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="o">*</span><span class="nx">visitor</span><span class="p">)</span> <span class="nf">Enter</span><span class="p">(</span><span class="nx">in</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">)</span> <span class="p">(</span><span class="nx">out</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">skipChildren</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%T\n&#34;</span><span class="p">,</span> <span class="nx">in</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl"> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%T\n&#34;</span><span class="p">,</span> <span class="nx">in</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"> <span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">false</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="o">*</span><span class="nx">visitor</span><span class="p">)</span> <span class="nf">Leave</span><span class="p">(</span><span class="nx">in</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">)</span> <span class="p">(</span><span class="nx">out</span> <span class="nx">ast</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span> <span class="nx">ok</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl"> <span class="k">return</span> <span class="nx">in</span><span class="p">,</span> <span class="kc">true</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	<span class="nx">sql</span> <span class="o">:=</span> <span class="s">&#34;SELECT /*+ TIDB_SMJ(employees) */ emp_no, first_name, last_name &#34;</span> <span class="o">+</span>
-</span></span><span class="line"><span class="cl">		<span class="s">&#34;FROM employees USE INDEX (last_name) &#34;</span> <span class="o">+</span>
-</span></span><span class="line"><span class="cl">		<span class="s">&#34;where last_name=&#39;Aamodt&#39; and gender=&#39;F&#39; and birth_date &gt; &#39;1960-01-01&#39;&#34;</span>
+</span></span><span class="line"><span class="cl"> <span class="nx">sql</span> <span class="o">:=</span> <span class="s">&#34;SELECT /*+ TIDB_SMJ(employees) */ emp_no, first_name, last_name &#34;</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">  <span class="s">&#34;FROM employees USE INDEX (last_name) &#34;</span> <span class="o">+</span>
+</span></span><span class="line"><span class="cl">  <span class="s">&#34;where last_name=&#39;Aamodt&#39; and gender=&#39;F&#39; and birth_date &gt; &#39;1960-01-01&#39;&#34;</span>
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	<span class="nx">sqlParser</span> <span class="o">:=</span> <span class="nx">parser</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
-</span></span><span class="line"><span class="cl">	<span class="nx">stmtNodes</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sqlParser</span><span class="p">.</span><span class="nf">Parse</span><span class="p">(</span><span class="nx">sql</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;parse error:\n%v\n%s&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">sql</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">		<span class="k">return</span>
-</span></span><span class="line"><span class="cl">	<span class="p">}</span>
-</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">stmtNode</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">stmtNodes</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">		<span class="nx">v</span> <span class="o">:=</span> <span class="nx">visitor</span><span class="p">{}</span>
-</span></span><span class="line"><span class="cl">		<span class="nx">stmtNode</span><span class="p">.</span><span class="nf">Accept</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">v</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"> <span class="nx">sqlParser</span> <span class="o">:=</span> <span class="nx">parser</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"> <span class="nx">stmtNodes</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sqlParser</span><span class="p">.</span><span class="nf">Parse</span><span class="p">(</span><span class="nx">sql</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"> <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;parse error:\n%v\n%s&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">sql</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span>
+</span></span><span class="line"><span class="cl"> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"> <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">stmtNode</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">stmtNodes</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">v</span> <span class="o">:=</span> <span class="nx">visitor</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">  <span class="nx">stmtNode</span><span class="p">.</span><span class="nf">Accept</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"> <span class="p">}</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></td></tr></table>
 </div>

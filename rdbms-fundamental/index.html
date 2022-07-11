@@ -522,7 +522,7 @@
 <h2 id="关系数据库的查询处理器">关系数据库的查询处理器</h2>
 <p><strong>SQL</strong>是在很高层次上表达查询，那么数据库的<strong>查询处理器</strong>必须提供查询被如何执行的大量细节。下面我从概念上介绍查询处理器的处理流程，实际的数据库实现要复杂的多，特别是像 <code>TiDB</code> 这样的分布式数据库。如果想比较系统的了解数据库的实现技术，同样推荐斯坦福大学计算机科学专业的课程 <a href="http://infolab.stanford.edu/~ullman/dbsi.html" target="_blank" rel="noopener noreffer ">CS245: Database System Implementation</a>。上面提到的<a href="http://infolab.stanford.edu/~ullman/fcdb.html" target="_blank" rel="noopener noreffer ">CS145</a>是<a href="http://infolab.stanford.edu/~ullman/dbsi.html" target="_blank" rel="noopener noreffer ">CS245</a>的预修课。国内很少有讲数据库内部实现的书，这门课的教材值得阅读。当然最好的学习方法是理论联系实践，多去读 <a href="https://github.com/pingcap/tidb" target="_blank" rel="noopener noreffer ">TiDB</a> 的源代码:)</p>
 <p>一般查询处理可以简单的划分为以下几个步骤：</p>
-<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011706716.png" style="zoom:50%;" />
+<img src="https://cdn.mazhen.tech//images/202207011706716.png" style="zoom:50%;" />
 <ol>
 <li>对SQL进行语法分析，将查询语句转换成<strong>抽象语法树</strong>。</li>
 <li>把<strong>抽象语法树</strong>转换成<strong>关系代数表达式树</strong>，这就是初始的<strong>逻辑查询计划</strong>。</li>
@@ -625,11 +625,11 @@
 <p><img
         class="lazyload"
         src="/svg/loading.min.svg"
-        data-src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png"
-        data-srcset="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png 1.5x, https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png 2x"
+        data-src="https://cdn.mazhen.tech//images/202207011707079.png"
+        data-srcset="https://cdn.mazhen.tech//images/202207011707079.png, https://cdn.mazhen.tech//images/202207011707079.png 1.5x, https://cdn.mazhen.tech//images/202207011707079.png 2x"
         data-sizes="auto"
-        alt="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png"
-        title="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707079.png" /></p>
+        alt="https://cdn.mazhen.tech//images/202207011707079.png"
+        title="https://cdn.mazhen.tech//images/202207011707079.png" /></p>
 <h3 id="生成逻辑查询计划">生成逻辑查询计划</h3>
 <p>现在将上一步生成的语法树转换成<strong>关系代数表达式树</strong>，也就是<strong>逻辑查询计划</strong>。对于示例SQL的抽象语法树转换过程如下：</p>
 <ul>
@@ -638,7 +638,7 @@
 <li>投影（projection） π<sub>L</sub>，其中<code>L</code>是<code>&lt;SelList&gt;</code>中的属性列表，对于这个查询只有一个属性<code>name</code></li>
 </ul>
 <p>我们得到下面的关系代数表达式树：</p>
-<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011707826.png" style="zoom:67%;" />
+<img src="https://cdn.mazhen.tech//images/202207011707826.png" style="zoom:67%;" />
 <h3 id="逻辑查询计划的改进">逻辑查询计划的改进</h3>
 <p>当我们把查询语句转换成关系代数表达式时，得到了一个初始的<strong>逻辑查询计划</strong>。现在我们可以使用关系代数中的多个<strong>代数定律</strong>改进<strong>逻辑查询计划</strong>。</p>
 <p>这里仅仅列出一小部分这样的<strong>代数定律</strong>，它们可以将一个表达式树转换成一个<strong>等价</strong>的表达式树。</p>
@@ -675,7 +675,7 @@
 <p>对于本例使用到的定律比较简单。先将选择的两部分分解为 σ<sub>employees.emp_no = salaries.emp_no</sub>
 和 σ<sub>salary &gt; 7000</sub>，后者可以在树中下推。第一个条件涉及笛卡尔积两边的属性，可以把上面提到的定律 R ⋈<sub>C</sub> S = σ<sub>C</sub>( R × S)</p>
 <p>从右向左使用，把<strong>笛卡尔积</strong>转换成<strong>连接</strong>。使用了两个定律后，得到优化后的逻辑查询计划如下图：</p>
-<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011708287.png" style="zoom:67%;" />
+<img src="https://cdn.mazhen.tech//images/202207011708287.png" style="zoom:67%;" />
 <h3 id="物理查询计划的生成">物理查询计划的生成</h3>
 <p>这一步我们需要把<strong>逻辑查询计划</strong>转换成<strong>物理查询计划</strong>。通常由逻辑计划可以得到多个物理计划，我们需要对每个物理计划进行评估，选择具有最小估计代价的物理查询计划。</p>
 <h4 id="基于代价的物理计划选择">基于代价的物理计划选择</h4>
@@ -730,7 +730,7 @@
 <p>投影结点的任务比较明确，输出包含指定列的关系。</p>
 <p>除了将逻辑查询计划的结点转换成物理运算符，在选择物理计划时还要考虑数据如何在运算符之间流动（中间结果保存到磁盘或流水线方式），物理运算符的执行顺序等。这些细节本文就不再讨论。</p>
 <p>最后，假定我们在所有选择的组合中，确定了其中一个作为最优的物理查询计划，然后就可以把它交给查询执行器真正的执行了：</p>
-<img src="https://images-1251716363.cos.ap-guangzhou.myqcloud.com/images/202207011710602.png" style="zoom:50%;" />
+<img src="https://cdn.mazhen.tech//images/202207011710602.png" style="zoom:50%;" />
 <h2 id="写在最后">写在最后</h2>
 <p>本文把关系数据库查询处理涉及的基础知识进行了梳理，希望对你理解 <code>TiDB</code> 的代码能有所帮助。</p>
 <p>数据库是一个非常迷人的领域，它有很强的理论基础，同时又涉及大量的工程实践，可以说是最复杂的系统软件之一。我相信能开发数据库是很多程序员的梦想。梦想还是要有的，让我们一起努力吧！</p>
