@@ -1,4 +1,4 @@
-# Container Innovation
+# 容器技术创新漫谈
 
 
 `Kubernetes`在2017年赢得了容器编排之战，使得基于`容器`+`Kubernetes`来构建`PaaS`平台成为了云计算的主流方式。在人们把关注的目光都聚焦在`Kubernetes`上时，容器技术领域在2018年也发生了很多创新，包括`amazon`最近开源的轻量级虚拟机管理器 [Firecracker](https://firecracker-microvm.github.io/)，`Google`在今年5月份开源的基于用户态操作系统内核的 [gVisor](https://github.com/google/gvisor) 容器，还有更早开源的虚拟化容器项目 [KataContainers](https://katacontainers.io/)，可谓百花齐放。一般的开发者可能认为容器就等于`Docker`，没想到容器领域还在发生着这么多创新。我在了解这些项目时，发现如果没有一些背景知识，很难get到它们的创新点。我试着通过这篇文章进行一次背景知识的梳理。让我们先从最基本的问题开始：操作系统是怎么工作的？
@@ -28,8 +28,6 @@
 实际上，操作系统的实现依赖 `CPU` 提供的功能。现代的`CPU`体系架构都提供几种特权级别，每个特权级别有各种限制。各级别可以看作是环，内环能够访问更多的功能，外环则较少，被称为[protection rings](https://en.wikipedia.org/wiki/Protection_ring)：
 
 <img src="https://cdn.mazhen.tech//images/202207112207458.png" style="zoom: 25%;" />
-
-
 
  `Intel` 的 `CPU` 提供了4种特权级别， `Linux` 只使用了 `Ring0` 和 `Ring3` 两个级别。`Ring 0` 拥有最多的特权，它可以直接和CPU、内存等物理硬件交互。 `Ring 0` 被称为`内核态`，操作系统内核正是运行在`Ring 0`。`Ring 3`被称为`用户态`，应用程序运行在`用户态`。
 
@@ -71,8 +69,7 @@
 
 <img src="https://cdn.mazhen.tech//images/202207112209569.png" style="zoom:67%;" />
 
-
-### KVM & QEMU 
+### KVM & QEMU
 
 实际上`Type-1`和`Type-2`并没有严格的区分，像最常见的虚拟化软件 [KVM](https://www.linux-kvm.org/)（Kernel-based Virtual Machine）是一个`Linux`内核模块，加载`KVM`后`Linux`内核就转换成了`Type-1 hypervisor`。同时，`Linux`还是一个通用的操作系统，也可以认为`KVM`是运行在`Linux`之上的`Type-2 hypervisor`。
 
@@ -160,7 +157,6 @@ Google 开源的[gVisor](https://github.com/google/gvisor)为了实现安全容�
 虽然 `gVisor` 今年才开源，但它已经在[Google App Engine](https://cloud.google.com/appengine/) 和 [Google Cloud Functions](https://cloud.google.com/functions/docs/)运行了多年。
 
 <img src="https://cdn.mazhen.tech//images/202207112213737.png" style="zoom: 50%;" />
-
 
 `gVisor`作为运行应用的安全沙箱，扮演着`Virtual kernel`的角色。同时`gVisor` 包含了一个兼容[Open Container Initiative (OCI)](https://www.opencontainers.org/) 的运行时`runsc`，因此可以用它替换掉 Docker 的 `runc`，整合进`Kubernetes`生态圈，为`Kubernetes`带来另一种安全容器的实现方案。
 

@@ -3,7 +3,6 @@
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     ><url>
             <loc>https://mazhen.tech/categories/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
-            <loc>https://mazhen.tech/container-innovation/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/tags/docker/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/tags/linux/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
@@ -11,6 +10,7 @@
             <loc>https://mazhen.tech/posts/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/tags/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/categories/tech/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>https://mazhen.tech/container-innovation/</loc><lastmod>2018-12-16T22:03:21&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/docker-route-networks/</loc><lastmod>2018-11-11T22:00:22&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/docker-overlay-networks/</loc><lastmod>2018-11-07T21:52:36&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://mazhen.tech/docker-network-bridge/</loc><lastmod>2018-10-26T21:40:03&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
