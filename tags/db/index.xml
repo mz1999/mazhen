@@ -3,8 +3,8 @@
         <title>db - Tag - mazhen.tech</title>
         <link>https://mazhen.tech/tags/db/</link>
         <description>db - Tag - mazhen.tech</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/db/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>me@mazhen.tech (mazhen)</managingEditor>
+            <webMaster>me@mazhen.tech (mazhen)</webMaster><lastBuildDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/db/" rel="self" type="application/rss+xml" /><item>
     <title>关系数据库查询处理基础知识扫盲</title>
     <link>https://mazhen.tech/rdbms-fundamental/</link>
     <pubDate>Sun, 01 Jul 2018 17:04:31 &#43;0800</pubDate>

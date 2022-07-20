@@ -3,8 +3,8 @@
         <title>java - Tag - mazhen.tech</title>
         <link>https://mazhen.tech/tags/java/</link>
         <description>java - Tag - mazhen.tech</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/java/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>me@mazhen.tech (mazhen)</managingEditor>
+            <webMaster>me@mazhen.tech (mazhen)</webMaster><lastBuildDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/java/" rel="self" type="application/rss+xml" /><item>
     <title>为Wireshark编写HSF2协议解析插件</title>
     <link>https://mazhen.tech/hsf/</link>
     <pubDate>Sun, 21 Dec 2014 14:15:17 &#43;0800</pubDate>

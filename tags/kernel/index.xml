@@ -3,8 +3,8 @@
         <title>kernel - Tag - mazhen.tech</title>
         <link>https://mazhen.tech/tags/kernel/</link>
         <description>kernel - Tag - mazhen.tech</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/kernel/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>me@mazhen.tech (mazhen)</managingEditor>
+            <webMaster>me@mazhen.tech (mazhen)</webMaster><lastBuildDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/kernel/" rel="self" type="application/rss+xml" /><item>
     <title>Linux TCP队列相关参数的总结</title>
     <link>https://mazhen.tech/linux-tcp-queue/</link>
     <pubDate>Sat, 16 Aug 2014 11:11:24 &#43;0800</pubDate>

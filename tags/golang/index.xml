@@ -3,8 +3,8 @@
         <title>golang - Tag - mazhen.tech</title>
         <link>https://mazhen.tech/tags/golang/</link>
         <description>golang - Tag - mazhen.tech</description>
-        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>mz1999@gmail.com (mazhen)</managingEditor>
-            <webMaster>mz1999@gmail.com (mazhen)</webMaster><lastBuildDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/golang/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>me@mazhen.tech (mazhen)</managingEditor>
+            <webMaster>me@mazhen.tech (mazhen)</webMaster><lastBuildDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</lastBuildDate><atom:link href="https://mazhen.tech/tags/golang/" rel="self" type="application/rss+xml" /><item>
     <title>Golang error处理实践</title>
     <link>https://mazhen.tech/golang-error-handling/</link>
     <pubDate>Fri, 06 Apr 2018 14:23:40 &#43;0800</pubDate>
